@@ -142,6 +142,9 @@ MonoBehaviour:
   isArrowLeft: 1
   isStripeSameDirectionAsArrow: 1
   shiftSpeed: 0.1
+  arrowType: 1
+  defaultMat: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  stripeMat: {fileID: 2100000, guid: 58ff83ffc04c0cb43b7eda1a00aac667, type: 2}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -352,12 +355,12 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: a605c838ce87284428ac0505bba2d40f,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.000000002999414
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a605c838ce87284428ac0505bba2d40f,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 10.26
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a605c838ce87284428ac0505bba2d40f,
         type: 3}
@@ -393,6 +396,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: a605c838ce87284428ac0505bba2d40f,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: a605c838ce87284428ac0505bba2d40f,
         type: 3}
