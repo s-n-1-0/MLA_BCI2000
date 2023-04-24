@@ -72,8 +72,6 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 #Custom
-/Assets/Resources
-/Assets/Resources.meta
 /Assets/TextMesh Pro**
 /Tests/**
 **/*Log.txt
