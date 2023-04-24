@@ -80,6 +80,13 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "org.bci2000.unitybci2000": {
+      "version": "https://github.com/s-n-1-0/UnityBCI2000.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "c33b30271f2149886e99b7079c9f7ece2b774b8d"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,
