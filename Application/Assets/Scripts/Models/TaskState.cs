@@ -5,9 +5,12 @@ using UnityEngine;
 [System.Serializable]
 public class TaskState
 {
+    //---送信
     public bool isFeedback { get => trueClassType != TrialClassType.None; }
+    public TrialClassType trueClassType = TrialClassType.None;
+
+    //---受信
     public TrialClassType predictClassType = TrialClassType.None;
-    public TrialClassType trueClassType = TrialClassType.None; //Noneであれば推論しない
 
 }
 public enum TrialClassType

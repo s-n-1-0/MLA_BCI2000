@@ -6,7 +6,7 @@ public class TaskManager : MonoBehaviour
 {
     public ArrowController arrow;
     public int trialsNum = 30;
-    public TaskState state = new TaskState();
+    public TaskState state { get; } = new TaskState();
     private void Start()
     {
         arrow.gameObject.SetActive(false);

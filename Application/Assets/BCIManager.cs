@@ -5,28 +5,27 @@ using UnityEngine;
 
 public class BCIManager : CustomVariableBase
 {
-    public int yClass;
     public override void AddCustomVariables()
     {
-        //TODO: 適切な変数指定
-        customVariables.Add(new CustomGetVariable(
-            "YClass",
-            new Action<int>((int i) => { yClass = i; })
+        var state = GetComponent<TaskManager>().state;
+        //--SEND
+        customVariables.Add(new CustomSendVariable(
+            "feedback",
+            new Func<float>(() => state.isFeedback ? 1 : 0),
+            1,
+            UnityBCI2000.StateType.UnsignedInt16
         ));
-    }
-    void Start()
-    {
-        
-    }
+        customVariables.Add(new CustomSendVariable(
+            "trueClass",
+            new Func<float>(() => (int)state.trueClassType),
+            1,
+            UnityBCI2000.StateType.UnsignedInt16
+        ));
 
-    // Update is called once per frame
-    void Update()
-    {
-        //TODO: クラス分類結果に応じた矢印設定
-        switch (yClass)
-        {
-            case 0:
-                break;
-        }
+        //--GET
+        customVariables.Add(new CustomGetVariable(
+            "predictClass",
+            new Action<int>((int i) => { state.predictClassType = (TrialClassType)i; })
+        ));
     }
 }
