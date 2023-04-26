@@ -8,10 +8,11 @@ public class ArrowController : MonoBehaviour
     public bool isArrowLeft = true;
     public bool isStripeSameDirectionAsArrow = true;
     public float shiftSpeed = 0.1f;
-    public ArrowType arrowType = ArrowType.Stripe;
+    [SerializeField]
+    private ArrowType arrowType = ArrowType.Stripe; //typeの変更と同時にマテリアルも変更する必要があるためSetArrowTypeを使用
     public Material  defaultMat, stripeMat;
     private MeshRenderer mesh;
-    void Start()
+    void Awake()
     {
         mesh = GetComponent<MeshRenderer>();
     }
@@ -24,7 +25,12 @@ public class ArrowController : MonoBehaviour
     }
     private void OnValidate()
     {
-        if (mesh)  mesh.material = arrowType == ArrowType.Default ? defaultMat : stripeMat;
+        SetArrowType(arrowType);
+    }
+    public void SetArrowType(ArrowType type)
+    {
+        arrowType = type;
+        if (mesh) mesh.material = arrowType == ArrowType.Default ? defaultMat : stripeMat;
     }
 }
 public enum ArrowType {
