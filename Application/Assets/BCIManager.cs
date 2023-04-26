@@ -6,7 +6,6 @@ using UnityEngine;
 public class BCIManager : CustomVariableBase
 {
     public int yClass;
-    public ArrowController arrowController;
     public override void AddCustomVariables()
     {
         //TODO: 適切な変数指定
