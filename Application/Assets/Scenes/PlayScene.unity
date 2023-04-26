@@ -142,7 +142,7 @@ MonoBehaviour:
   isArrowLeft: 1
   isStripeSameDirectionAsArrow: 1
   shiftSpeed: 0.1
-  arrowType: 1
+  arrowType: 0
   defaultMat: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
   stripeMat: {fileID: 2100000, guid: 58ff83ffc04c0cb43b7eda1a00aac667, type: 2}
 --- !u!1 &705507993
@@ -331,6 +331,7 @@ GameObject:
   - component: {fileID: 1545875101}
   - component: {fileID: 1545875100}
   - component: {fileID: 1545875102}
+  - component: {fileID: 1545875103}
   m_Layer: 0
   m_Name: BCI2000
   m_TagString: Untagged
@@ -391,7 +392,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Sender: {fileID: 0}
   yClass: 0
-  arrowController: {fileID: 627747587}
+--- !u!114 &1545875103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1545875099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb5f86c352bb7614589460aa94ac596d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  arrow: {fileID: 627747587}
+  trialsNum: 30
+  state:
+    predictClassType: 0
+    trueClassType: 0
 --- !u!1001 &1639787334
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -483,6 +500,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Target
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a605c838ce87284428ac0505bba2d40f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a605c838ce87284428ac0505bba2d40f, type: 3}
