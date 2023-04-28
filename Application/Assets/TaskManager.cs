@@ -9,6 +9,8 @@ public class TaskManager : MonoBehaviour
     public TaskState state { get; } = new TaskState();
     private void Start()
     {
+        var arrowObj = GameObject.Find("Target");
+        arrow = arrowObj.GetComponent<ArrowController>();
         arrow.gameObject.SetActive(false);
         StartTask();
     }
