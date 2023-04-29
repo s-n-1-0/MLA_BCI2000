@@ -14,7 +14,7 @@ public class ArrowController : MonoBehaviour
     private MeshRenderer mesh;
     void Awake()
     {
-        mesh = GetComponent<MeshRenderer>();
+        mesh = gameObject.GetComponentInChildren<MeshRenderer>();
     }
 
     // Update is called once per frame
