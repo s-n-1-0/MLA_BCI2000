@@ -8,7 +8,7 @@
         SubShader{
             Tags {"Queue" = "Transparent" "RenderType" = "Opaque"}
             LOD 100
-
+            Cull Off
             Pass {
                 CGPROGRAM
                 #pragma vertex vert
