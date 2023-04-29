@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Demo4PatternsManager : MonoBehaviour
 {
-    public ArrowController arrow;
+   private ArrowController arrow;
     private void Start()
     {
         var arrowObj = GameObject.Find("Target");
@@ -41,6 +41,7 @@ public class Demo4PatternsManager : MonoBehaviour
     {
         arrow.isArrowLeft = trueType == TrialClassType.Left;
         arrow.isStripeSameDirectionAsArrow = trueType == predictType;
+        arrow.Update();
         arrow.gameObject.SetActive(true);
     }
 }
