@@ -19,13 +19,9 @@ public class DemoAppManager : MonoBehaviour
     {
         if (state.trueClassType != TrialClassType.None)
         {
-            arrow.SetArrowType(state.isFeedback && state.predictClassType != TrialClassType.None ? ArrowType.Stripe : ArrowType.Default); //FB有でpredictの結果が返されているなら
+            arrow.SetArrowType(ArrowType.Stripe); //FB有でpredictの結果が返されているなら
             arrow.isArrowLeft = state.trueClassType == TrialClassType.Left;
             arrow.isStripeSameDirectionAsArrow = state.trueClassType == state.predictClassType;
-        }
-        else
-        {
-            arrow.SetArrowType(ArrowType.Default);
         }
     }
 
@@ -38,9 +34,10 @@ public class DemoAppManager : MonoBehaviour
         //---試行
         while (true)
         {
-            var trueClass = (TrialClassType)(1 + Random.Range(0, 2));
+            state.trueClassType = TrialClassType.None;
             ChangeWaitScreen();
             yield return new WaitForSeconds(1f);
+            var trueClass = (TrialClassType)(1 + Random.Range(0, 2));
             state.trueClassType = trueClass;
             ChangeTargetScreen();
             yield return new WaitForSecondsRealtime(5f);
@@ -53,6 +50,7 @@ public class DemoAppManager : MonoBehaviour
     }
     private void ChangeTargetScreen()
     {
+        Update();
         arrow.gameObject.SetActive(true);
     }
 }
