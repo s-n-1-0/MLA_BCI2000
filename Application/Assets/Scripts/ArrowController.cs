@@ -21,11 +21,15 @@ public class ArrowController : MonoBehaviour
     public void Update()
     {
          mesh.material.SetFloat("_Speed", Mathf.Abs(shiftSpeed) * (isStripeSameDirectionAsArrow ? 1 : -1));
-        transform.eulerAngles = new Vector3(90, (isArrowLeft ? 0f : 180f), 0f);
+        SetEulerAngles();
     }
     private void OnValidate()
     {
         SetArrowType(arrowType);
+    }
+    public void SetEulerAngles()
+    {
+        transform.eulerAngles = new Vector3(90, (isArrowLeft ? 0f : 180f), 0f);
     }
     public void SetArrowType(ArrowType type)
     {

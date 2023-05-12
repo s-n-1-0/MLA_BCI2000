@@ -51,6 +51,7 @@ public class DemoAppManager : MonoBehaviour
     private void ChangeTargetScreen()
     {
         Update();
+        arrow.Update();
         arrow.gameObject.SetActive(true);
     }
 }
