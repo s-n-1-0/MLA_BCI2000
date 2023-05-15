@@ -412,8 +412,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1545875101}
-  - component: {fileID: 1545875100}
   - component: {fileID: 1545875102}
+  - component: {fileID: 1545875100}
   - component: {fileID: 1545875103}
   m_Layer: 0
   m_Name: BCI2000
@@ -474,7 +474,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da9b0f15104f1f748968f9d040edba7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Sender: {fileID: 0}
+  bciSenderPrefab: {fileID: 8048719298636257831, guid: 4eedcb4b0e91101428ec87a42d658cc1,
+    type: 3}
 --- !u!114 &1545875103
 MonoBehaviour:
   m_ObjectHideFlags: 0

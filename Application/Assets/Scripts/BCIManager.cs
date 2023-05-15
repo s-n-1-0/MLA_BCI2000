@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class BCIManager : CustomVariableBase
+public class BCIManager : MonoBehaviour
 {
+    public GameObject bciSenderPrefab;
     private void Awake()
     {
         string filePath = Application.streamingAssetsPath + "/BCISettings.json";
@@ -19,28 +20,9 @@ public class BCIManager : CustomVariableBase
         bci.Module2 = bciSettings.module2Name;
         bci.Module3 = bciSettings.module3Name;
         bci.enabled = true;
+        var bciSender = Instantiate(bciSenderPrefab).GetComponent<BCI2000StateSender>();
+        bciSender.name = bciSenderPrefab.name;
+        bciSender.BCIObject = this.gameObject;
     }
-    public override void AddCustomVariables()
-    {
-        var state = GetComponent<TaskManager>().state;
-        //--SEND
-        customVariables.Add(new CustomSendVariable(
-            "feedback",
-            new Func<float>(() => state.isFeedback ? 1 : 0),
-            1,
-            UnityBCI2000.StateType.UnsignedInt16
-        ));
-        customVariables.Add(new CustomSendVariable(
-            "trueClass",
-            new Func<float>(() => (int)state.trueClassType),
-            1,
-            UnityBCI2000.StateType.UnsignedInt16
-        ));
-
-        //--GET
-        customVariables.Add(new CustomGetVariable(
-            "predictClass",
-            new Action<int>((int i) => { state.predictClassType = (TrialClassType)i; })
-        ));
-    }
+    
 }
