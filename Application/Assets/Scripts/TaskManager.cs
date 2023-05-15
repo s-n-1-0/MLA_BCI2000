@@ -5,14 +5,14 @@ using UnityEngine;
 public class TaskManager : MonoBehaviour
 {
     public ArrowController arrow;
-    public int trialsNum = 30;
+    public int maxTrialsNum = 30;
+    public GameObject buttons;
     public TaskState state { get; } = new TaskState();
     private void Start()
     {
         var arrowObj = GameObject.Find("Target");
         arrow = arrowObj.GetComponent<ArrowController>();
         arrow.gameObject.SetActive(false);
-        StartTask();
     }
 
     private void Update()
@@ -29,25 +29,28 @@ public class TaskManager : MonoBehaviour
         }
     }
 
-    public void StartTask() {
-        StartCoroutine(_StartTask());
+    public void StartTask(bool isNFB) {
+        StartCoroutine(_StartTask(isNFB));
     }
-    private IEnumerator _StartTask()
+    private IEnumerator _StartTask(bool isNFB)
     {
+        buttons.gameObject.SetActive(false);
+        state.isNFBMode = isNFB;
         //---セットアップ
-        var trials = new TrialClassType[trialsNum];
-        for (int i = 0; i < trialsNum; i++) trials[i] = (TrialClassType)(1 + Random.Range(0, 2));
+        var trials = new TrialClassType[maxTrialsNum];
+        for (int i = 0; i < maxTrialsNum; i++) trials[i] = (TrialClassType)(1 + Random.Range(0, 2));
        
         //---試行
-        for (int i = 0; i <  trialsNum; i++)
+        for (int i = 0; i <  maxTrialsNum; i++)
         {
-            ChangeWaitScreen(i);
+            ChangeWaitScreen(i + 1);
             yield return new WaitForSeconds(1f);
             
             ChangeTargetScreen(trials[i]);
             yield return new WaitForSecondsRealtime(3f);
         }
         ChangeWaitScreen(9999);
+        buttons.gameObject.SetActive(true);
     }
     private void ChangeWaitScreen(int trialNum)
     {
