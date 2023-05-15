@@ -4,7 +4,7 @@
 	"module2Name": "PythonSignalProcessing",
 	"module3Name": "DummyApplication",
 	"module2Args": [
-		"PythonSigClassFile=MLA_Processing/tests/TestBciSignalProcessing.py",
+		"PythonSigClassFile=MLA_Processing/BciSignalProcessing.py",
 		"PythonSigShell=0",
 		"PythonSigLog=Siglogger.txt"
 	],
