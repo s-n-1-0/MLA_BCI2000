@@ -43,18 +43,20 @@ public class TaskManager : MonoBehaviour
         {
             ChangeWaitScreen();
             yield return new WaitForSeconds(1f);
-            state.trueClassType = trials[i];
-            ChangeTargetScreen();
+            
+            ChangeTargetScreen(trials[i]);
             yield return new WaitForSecondsRealtime(3f);
             
         }
     }
     private void ChangeWaitScreen()
     {
-        arrow.gameObject.SetActive(false);
+        state.trueClassType = TrialClassType.None;
+       arrow.gameObject.SetActive(false);
     }
-    private void ChangeTargetScreen()
+    private void ChangeTargetScreen(TrialClassType nextClass)
     {
+        state.trueClassType = nextClass;
         arrow.gameObject.SetActive(true); 
     }
 }
