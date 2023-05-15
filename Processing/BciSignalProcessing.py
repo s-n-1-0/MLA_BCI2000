@@ -8,7 +8,7 @@ logging.basicConfig(
 	level=logging.INFO)
 import numpy as np
 import random
-from SignalManager import SignalManager
+from SignalManager import PredictHistory, SignalManager
 
 class BciSignalProcessing(BciGenericSignalProcessing):
 	def Construct(self):
@@ -25,18 +25,28 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 	
 	def Initialize(self, indim, outdim): #indim[0] = ch
 		self.signals = SignalManager(indim[0])
-		self.count = 0
+		self.history = PredictHistory()
 		pass
 		
 	def Process(self, stream_sig):
-		self.signals.add_signal(stream_sig)
-		self.count += 1
-		sig = self.signals.get_last_samples(self.count)
+		trial_num = self.states['sender_trialNum']
+		fb = self.states["sender_feedback"] # fb is 0 == true_class is 0
+		true_class = self.states['sender_trueClass'] # 0(wait) or 1 or 2 
+		self.signals.add_signal(trial_num,stream_sig,true_class)
+		data = self.signals.get_last_samples()
+		if data is None:
+			return
+		sig = data[:-2,:]
 		#TODO: LDA
-		predict = random.randint(1,2)
+		if fb == 1:
+			predict = random.randint(1,2)
+		else:
+			predict = 0
 		self.states['predictClass'] = predict
+		self.history.add_data(trial_num,data,predict)
 	
 	def StopRun(self):
-		saved_samples = self.signals.get_saved_samples()
-		with open("saved_samples.pkl", "wb") as file:
-			pickle.dump(saved_samples, file)
+		with open("history.pkl", "wb") as file:
+			pickle.dump(self.history, file)
+		np.save('data', self.signals.combined_data)
+		

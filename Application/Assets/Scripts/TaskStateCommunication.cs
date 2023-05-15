@@ -6,6 +6,7 @@ using static CustomVariableBase;
 
 public class TaskStateCommunication : CustomVariableBase
 {
+    
     public override void AddCustomVariables()
     {
         var state = Sender?.BCIObject?.GetComponent<TaskManager>()?.state;
@@ -23,7 +24,12 @@ public class TaskStateCommunication : CustomVariableBase
             1,
             UnityBCI2000.StateType.UnsignedInt16
         ));
-        return;
+        customVariables.Add(new CustomSendVariable(
+            "trialNum",
+            new Func<float>(() => state.trialNum),
+            1,
+            UnityBCI2000.StateType.UnsignedInt16
+        )) ;
         //--GET
         customVariables.Add(new CustomGetVariable(
             "predictClass",
