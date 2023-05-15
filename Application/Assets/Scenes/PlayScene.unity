@@ -444,6 +444,7 @@ MonoBehaviour:
   Module2Args: []
   Module3: DummyApplication
   Module3Args: []
+  commandsInProgDir: []
   LogFile: 
   LogStates: 0
   LogPrompts: 0

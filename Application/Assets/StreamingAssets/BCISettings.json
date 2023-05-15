@@ -1,6 +1,14 @@
 {
-    "operatorPath":"D:/MyProjects/BCI2000/prog/Operator.exe",
-    "module1Name":"SignalGenerator",
-    "module2Name":"DummySignalProcessing",
-    "module3Name":"DummyApplication"
+	"operatorPath": "D:/MyProjects/BCI2000/prog/Operator.exe",
+	"module1Name": "SignalGenerator",
+	"module2Name": "PythonSignalProcessing",
+	"module3Name": "DummyApplication",
+	"module2Args": [
+		"PythonSigClassFile=MLA_Processing/tests/TestBciSignalProcessing.py",
+		"PythonSigShell=0",
+		"PythonSigLog=Siglogger.txt"
+	],
+	"commandsInProgDir": [
+		"execute script ../batch/FindPortablePython.bat"
+	]
 }

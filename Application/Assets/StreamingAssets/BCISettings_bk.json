@@ -1,0 +1,6 @@
+{
+    "operatorPath":"D:/MyProjects/BCI2000/prog/Operator.exe",
+    "module1Name":"SignalGenerator",
+    "module2Name":"DummySignalProcessing",
+    "module3Name":"DummyApplication"
+}
