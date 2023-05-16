@@ -7,6 +7,8 @@ using UnityEngine;
 public class BCIManager : MonoBehaviour
 {
     public GameObject bciSenderPrefab;
+    public bool isReadJsonToThis = true;
+    public bool isReadJsonToTaskManager = true;
     private void Awake()
     {
         string filePath = Application.streamingAssetsPath + "/BCISettings.json";
@@ -15,15 +17,25 @@ public class BCIManager : MonoBehaviour
         reader.Close();
         var bciSettings = JsonUtility.FromJson<BCI2000SettingsJson>(json);
         var bci = GetComponent<UnityBCI2000>();
-        bci.OperatorPath = bciSettings.operatorPath;
-        bci.Module1 = bciSettings.module1Name;
-        bci.Module2 = bciSettings.module2Name;
-        bci.Module3 = bciSettings.module3Name;
-        bci.Module1Args = bciSettings.module1Args;
-        bci.Module2Args = bciSettings.module2Args;
-        bci.Module3Args = bciSettings.module3Args;
-        bci.commandsInProgDir = bciSettings.commandsInProgDir;
+        if (isReadJsonToThis)
+        {
+            bci.OperatorPath = bciSettings.operatorPath;
+            bci.Module1 = bciSettings.module1Name;
+            bci.Module2 = bciSettings.module2Name;
+            bci.Module3 = bciSettings.module3Name;
+            bci.Module1Args = bciSettings.module1Args;
+            bci.Module2Args = bciSettings.module2Args;
+            bci.Module3Args = bciSettings.module3Args;
+            bci.commandsInProgDir = bciSettings.commandsInProgDir;
+        }
         bci.enabled = true;
+
+        if (isReadJsonToTaskManager)
+        {
+            var task = GetComponent<TaskManager>();
+            task.maxTrialsNum = bciSettings.maxTrialsNum;
+        }
+
         var bciSender = Instantiate(bciSenderPrefab).GetComponent<BCI2000StateSender>();
         bciSender.name = bciSenderPrefab.name;
         bciSender.BCIObject = this.gameObject;

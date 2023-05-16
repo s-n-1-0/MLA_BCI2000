@@ -10,5 +10,6 @@
 	],
 	"commandsInProgDir": [
 		"execute script ../batch/FindPortablePython.bat"
-	]
+	],
+	"maxTrialsNum":25
 }
