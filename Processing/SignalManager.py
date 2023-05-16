@@ -1,7 +1,5 @@
 import numpy as np
 
-import numpy as np
-
 class SignalManager:
     def __init__(self, num_channels:int,sample_size=250):
         self.num_channels = num_channels
@@ -18,7 +16,6 @@ class SignalManager:
         self.combined_data = np.hstack([self.combined_data, data])
 
     def get_last_samples(self):
-
         # 結合された信号の長さがサンプル数未満の場合はNoneを返す
         if self.combined_data.shape[1] < self.sample_size:
             return None
