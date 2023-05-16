@@ -47,6 +47,6 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 	
 	def StopRun(self):
 		with open("history.pkl", "wb") as file:
-			pickle.dump(self.history, file)
+			pickle.dump(self.history.history, file)
 		np.save('data', self.signals.combined_data)
 		
