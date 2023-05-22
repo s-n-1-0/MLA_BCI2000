@@ -7,11 +7,12 @@ public class ArrowController : MonoBehaviour
 {
     public bool isArrowLeft = true;
     public bool isStripeSameDirectionAsArrow = true;
-    public float shiftSpeed = 0.1f;
+    public float shiftSpeed = 1f;
     [SerializeField]
     private ArrowType arrowType = ArrowType.Stripe; //typeの変更と同時にマテリアルも変更する必要があるためSetArrowTypeを使用
     public Material  defaultMat, stripeMat;
     private MeshRenderer mesh;
+    private float shiftTime;
     void Awake()
     {
         mesh = gameObject.GetComponentInChildren<MeshRenderer>();
@@ -20,7 +21,11 @@ public class ArrowController : MonoBehaviour
     // Update is called once per frame
     public void Update()
     {
-         mesh.material.SetFloat("_Speed", Mathf.Abs(shiftSpeed) * (isStripeSameDirectionAsArrow ? 1 : -1));
+        shiftTime += Time.deltaTime * (isStripeSameDirectionAsArrow ? 1 : -1);
+        if (shiftTime > 1) shiftTime = shiftTime - 1;
+        if (shiftTime < 0) shiftTime = 1 - shiftTime;
+        //mesh.material.SetFloat("_Speed", Mathf.Abs(shiftSpeed) * (isStripeSameDirectionAsArrow ? 1 : -1));
+        mesh.material.SetFloat("_ShiftDistance", shiftTime * Mathf.Abs(shiftSpeed));
         SetEulerAngles();
     }
     private void OnValidate()
