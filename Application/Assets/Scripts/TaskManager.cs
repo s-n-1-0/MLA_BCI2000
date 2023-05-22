@@ -61,6 +61,7 @@ public class TaskManager : MonoBehaviour
     private void ChangeTargetScreen(TrialClassType nextClass)
     {
         state.trueClassType = nextClass;
+        arrow.SetEulerAngles();
         arrow.gameObject.SetActive(true); 
     }
 }
