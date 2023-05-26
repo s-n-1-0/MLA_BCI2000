@@ -3,6 +3,8 @@ from pathlib import Path
 import os
 import pickle
 import sys
+import datetime
+
 sys.path.append(os.path.join(Path().resolve(), "MLA_Processing"))
 logging.basicConfig(
 	level=logging.INFO)
@@ -45,9 +47,12 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 	
 	def StopRun(self):
 		self.is_run = False
-		with open("history.pkl", "wb") as file:
+		now = datetime.datetime.now()
+		dir_name = f"history_{now.strftime('%Y_%m_%d_%H_%M_%S')}"
+		os.mkdir(dir_name)
+		with open(f"{dir_name}/history.pkl", "wb") as file:
 			pickle.dump(self.predict_history.history, file)
-		np.save('data', self.signals.combined_data)
+		np.save(f"{dir_name}/data", self.signals.combined_data)
 		
 def processing(module:BciSignalProcessing):
 	while module.is_run:
