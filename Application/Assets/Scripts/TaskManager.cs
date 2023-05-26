@@ -17,15 +17,15 @@ public class TaskManager : MonoBehaviour
 
     private void Update()
     {
-        if (state.trueClassType != TrialClassType.None)
+        arrow.isArrowLeft = state.trueClassType == TrialClassType.Left;
+        if (state.trueClassType != TrialClassType.None && state.predictClassType != TrialClassType.None)
         {
-            arrow.SetArrowType(state.isFeedback && state.predictClassType != TrialClassType.None ? ArrowType.Stripe : ArrowType.Default); //FB有でpredictの結果が返されているなら
-            arrow.isArrowLeft = state.trueClassType == TrialClassType.Left;
+            arrow.isStopedShift = false;  
             arrow.isStripeSameDirectionAsArrow = state.trueClassType == state.predictClassType;
         }
         else
         {
-            arrow.SetArrowType(ArrowType.Default);
+            arrow.isStopedShift = true;
         }
     }
 
@@ -36,6 +36,7 @@ public class TaskManager : MonoBehaviour
     {
         buttons.gameObject.SetActive(false);
         state.isNFBMode = isNFB;
+        arrow.SetArrowType(isNFB ? ArrowType.Stripe :  ArrowType.Default);
         //---セットアップ
         var trials = new TrialClassType[maxTrialsNum];
         for (int i = 0; i < maxTrialsNum; i++) trials[i] = (TrialClassType)(1 + Random.Range(0, 2));
@@ -61,6 +62,7 @@ public class TaskManager : MonoBehaviour
     private void ChangeTargetScreen(TrialClassType nextClass)
     {
         state.trueClassType = nextClass;
+        Update();
         arrow.SetEulerAngles();
         arrow.gameObject.SetActive(true); 
     }
