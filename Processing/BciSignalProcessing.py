@@ -28,12 +28,13 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 		pass
 	
 	def Initialize(self, indim, outdim): #indim[0] = ch
-		self.signals = SignalManager(indim[0])
-		self.predict_history = PredictHistory()
+		self.ch = indim[0]
 		self.is_run = False
 	
 	def StartRun(self):
 		self.is_run = True
+		self.signals = SignalManager(self.ch)
+		self.predict_history = PredictHistory()
 		self.predict_class = self.states['predictClass']
 		thread = threading.Thread(target=processing,args=[self])
 		thread.start()
