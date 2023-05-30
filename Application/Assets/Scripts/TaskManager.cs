@@ -45,10 +45,10 @@ public class TaskManager : MonoBehaviour
         for (int i = 0; i <  maxTrialsNum; i++)
         {
             ChangeWaitScreen(i + 1);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(i==0 ? 10f : 2f);
             
             ChangeTargetScreen(trials[i]);
-            yield return new WaitForSecondsRealtime(3f);
+            yield return new WaitForSecondsRealtime(5f);
         }
         ChangeWaitScreen(9999);
         buttons.gameObject.SetActive(true);
