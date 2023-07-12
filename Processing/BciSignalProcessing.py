@@ -14,7 +14,10 @@ import time
 from SignalManager import PredictHistory, SignalManager
 import threading
 import keras
-loaded = keras.models.load_model("C:/test/model.h5")
+import json
+with open("./MLA_Processing/settings.json") as f:
+	settings = json.load(f)
+loaded = keras.models.load_model(settings["model_path"])
 ch_list = []
 class BciSignalProcessing(BciGenericSignalProcessing):
 	def Construct(self):
@@ -51,8 +54,8 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 	def StopRun(self):
 		self.is_run = False
 		now = datetime.datetime.now()
-		dir_name = f"history_{now.strftime('%Y_%m_%d_%H_%M_%S')}"
-		os.mkdir(dir_name)
+		dir_name = f"{settings['save_path']}/{settings['subject_id']}/history_{now.strftime('%Y_%m_%d_%H_%M_%S')}"
+		os.makedirs(dir_name)
 		with open(f"{dir_name}/history.pkl", "wb") as file:
 			pickle.dump(self.predict_history.history, file)
 		np.save(f"{dir_name}/data", self.signals.combined_data)
