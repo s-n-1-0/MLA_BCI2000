@@ -9,16 +9,15 @@ sys.path.append(os.path.join(Path().resolve(), "MLA_Processing"))
 logging.basicConfig(filename="test.log",
 	level=logging.INFO)
 import numpy as np
-import random
 import time
-from SignalManager import PredictHistory, SignalManager
+from SignalManager import SignalManager
 import threading
 import keras
 import json
 with open("./MLA_Processing/settings.json") as f:
 	settings = json.load(f)
 loaded = keras.models.load_model(settings["model_path"])
-ch_list = []
+ch_list = [0,1,2,3,4,5,6,7,8,9,10,11,12]
 class BciSignalProcessing(BciGenericSignalProcessing):
 	def Construct(self):
 		parameters = [
@@ -39,8 +38,7 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 	def StartRun(self):
 		self.is_run = True
 		self.signals = SignalManager(self.ch)
-		self.predict_history = PredictHistory()
-		self.predict_class = self.states['predictClass'] + 1
+		self.predict_class = 0
 		thread = threading.Thread(target=processing,args=[self])
 		thread.start()
 
@@ -54,23 +52,27 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 	def StopRun(self):
 		self.is_run = False
 		now = datetime.datetime.now()
-		dir_name = f"{settings['save_path']}/{settings['subject_id']}/history_{now.strftime('%Y_%m_%d_%H_%M_%S')}"
-		os.makedirs(dir_name)
-		with open(f"{dir_name}/history.pkl", "wb") as file:
-			pickle.dump(self.predict_history.history, file)
-		np.save(f"{dir_name}/data", self.signals.combined_data)
+		dir_name = f"{settings['save_path']}/{settings['subject_id']}"
+		if not os.path.exists(dir_name):
+			os.makedirs(dir_name)
+		np.save(f"{dir_name}/data_{now.strftime('%Y_%m_%d_%H_%M_%S')}", self.signals.total_combined_data)
 		
 def processing(module:BciSignalProcessing):
 	while module.is_run:
 		data = module.signals.get_last_samples()
-		if data is None:
+		if data is None or module.states['sender_trueClass'] == 0:
+			module.predict_class = 0
+			continue
+		true_class = module.states['sender_trueClass']
+		if module.signals.get_prev_true_class() == 0 and true_class != 0:
+			module.signals.reset()
+			module.predict_class = 0
 			continue
 		sig = data.astype('float32')
 		sig = np.array([sig[ch_list,:]])[:,:,:,None]
 		fb = module.states["sender_feedback"] # fb is 0 == true_class is 0
-		trial_num = module.states['sender_trialNum']
 		#feedback
-		predict = loaded.predict(sig)#,batch_size=1)
-		module.predict_class = predict[0]
-		module.predict_history.add_data(trial_num,data,predict)
+		prediction = loaded.predict(sig)[0]#,batch_size=1)
+		prediction = 2 if prediction > 0.5 else 1
+		module.predict_class = prediction
 		time.sleep(0.1)
