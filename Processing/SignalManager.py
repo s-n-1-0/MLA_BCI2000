@@ -1,7 +1,7 @@
 import numpy as np
 
 class SignalManager:
-    def __init__(self, num_channels:int,sample_size=250):
+    def __init__(self, num_channels:int,sample_size=500):
         self.num_channels = num_channels
         self.sample_size = sample_size
         self.combined_data = np.empty((num_channels + 2, 0)) #信号チャンネル + 試行番目(-1=待機) + 正解クラス 

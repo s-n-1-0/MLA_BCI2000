@@ -6,14 +6,16 @@ import sys
 import datetime
 
 sys.path.append(os.path.join(Path().resolve(), "MLA_Processing"))
-logging.basicConfig(
+logging.basicConfig(filename="test.log",
 	level=logging.INFO)
 import numpy as np
 import random
 import time
 from SignalManager import PredictHistory, SignalManager
 import threading
-
+import keras
+loaded = keras.models.load_model("C:/test/model.h5")
+ch_list = []
 class BciSignalProcessing(BciGenericSignalProcessing):
 	def Construct(self):
 		parameters = [
@@ -60,14 +62,12 @@ def processing(module:BciSignalProcessing):
 		data = module.signals.get_last_samples()
 		if data is None:
 			continue
-		sig = data[:-2,:]
+		sig = data.astype('float32')
+		sig = np.array([sig[ch_list,:]])[:,:,:,None]
 		fb = module.states["sender_feedback"] # fb is 0 == true_class is 0
 		trial_num = module.states['sender_trialNum']
-		#TODO: LDA
-		if fb == 1:
-			predict = random.randint(1,2)
-		else:
-			predict = 0
-		module.predict_class = predict
+		#feedback
+		predict = loaded.predict(sig)#,batch_size=1)
+		module.predict_class = predict[0]
 		module.predict_history.add_data(trial_num,data,predict)
-		time.sleep(0.2)
+		time.sleep(0.1)
