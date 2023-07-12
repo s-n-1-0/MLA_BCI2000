@@ -58,6 +58,7 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 		np.save(f"{dir_name}/data_{now.strftime('%Y_%m_%d_%H_%M_%S')}", self.signals.total_combined_data)
 		
 def processing(module:BciSignalProcessing):
+	predict_list = []
 	while module.is_run:
 		data = module.signals.get_last_samples()
 		if data is None or module.states['sender_trueClass'] == 0:
@@ -66,13 +67,15 @@ def processing(module:BciSignalProcessing):
 		true_class = module.states['sender_trueClass']
 		if module.signals.get_prev_true_class() == 0 and true_class != 0:
 			module.signals.reset()
+			predict_list = []
 			module.predict_class = 0
 			continue
 		sig = data.astype('float32')
 		sig = np.array([sig[ch_list,:]])[:,:,:,None]
 		fb = module.states["sender_feedback"] # fb is 0 == true_class is 0
 		#feedback
-		prediction = loaded.predict(sig)[0]#,batch_size=1)
-		prediction = 2 if prediction > 0.5 else 1
-		module.predict_class = prediction
+		prediction = loaded.predict(sig)[0]
+		prediction = 1 if prediction > 0.5 else 0
+		predict_list.append(prediction)
+		module.predict_class = round(np.mean(predict_list[-10:])) + 1
 		time.sleep(0.1)
