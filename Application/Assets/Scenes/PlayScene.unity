@@ -1267,6 +1267,7 @@ MonoBehaviour:
   OperatorPath: 
   TelnetIp: 
   TelnetPort: 0
+  Timeout: 10000
   DontStartModules: 0
   Module1: SignalGenerator
   Module1Args: []
