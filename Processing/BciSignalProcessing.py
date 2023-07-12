@@ -37,7 +37,7 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 		self.is_run = True
 		self.signals = SignalManager(self.ch)
 		self.predict_history = PredictHistory()
-		self.predict_class = self.states['predictClass']
+		self.predict_class = self.states['predictClass'] + 1
 		thread = threading.Thread(target=processing,args=[self])
 		thread.start()
 
