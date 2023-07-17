@@ -1,11 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class TaskManager : MonoBehaviour
 {
+    [HideInInspector]
     public ArrowController arrow;
     public int maxTrialsNum = 30;
+    public float[] jitterTimeRange;
+    public float stimTime;
     public GameObject buttons;
     public TaskState state { get; } = new TaskState();
     private void Start()
@@ -45,10 +47,10 @@ public class TaskManager : MonoBehaviour
         for (int i = 0; i <  maxTrialsNum; i++)
         {
             ChangeWaitScreen(i + 1);
-            yield return new WaitForSeconds(i==0 ? 10f : 2f);
+            yield return new WaitForSeconds((i==0 ? 7f : 0f) + UniformlyRandom());
             
             ChangeTargetScreen(trials[i]);
-            yield return new WaitForSecondsRealtime(5f);
+            yield return new WaitForSecondsRealtime(stimTime);
         }
         ChangeWaitScreen(9999);
         buttons.gameObject.SetActive(true);
@@ -66,4 +68,6 @@ public class TaskManager : MonoBehaviour
         arrow.SetEulerAngles();
         arrow.gameObject.SetActive(true); 
     }
+
+    private float UniformlyRandom() => Random.Range(jitterTimeRange[0], jitterTimeRange[1]);
 }

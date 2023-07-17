@@ -34,6 +34,8 @@ public class BCIManager : MonoBehaviour
         {
             var task = GetComponent<TaskManager>();
             task.maxTrialsNum = bciSettings.maxTrialsNum;
+            task.jitterTimeRange = new float[] { (float)bciSettings.jitterTimeRangeStart, (float)bciSettings.jitterTimeRangeEnd };
+            task.stimTime = (float)bciSettings.stimTime;
         }
 
         var bciSender = Instantiate(bciSenderPrefab).GetComponent<BCI2000StateSender>();
