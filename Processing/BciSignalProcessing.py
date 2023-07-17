@@ -78,4 +78,4 @@ def processing(module:BciSignalProcessing):
 		prediction = 1 if prediction > 0.5 else 0
 		predict_list.append(prediction)
 		module.predict_class = round(np.mean(predict_list[-10:])) + 1
-		time.sleep(0.1)
+		time.sleep(0.5)

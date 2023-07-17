@@ -1,7 +1,7 @@
 import numpy as np
 
 class SignalManager:
-    def __init__(self, num_channels:int,sample_size=500):
+    def __init__(self, num_channels:int,sample_size=750):
         self.num_channels = num_channels
         self.sample_size = sample_size
         self.saved_samples = []
