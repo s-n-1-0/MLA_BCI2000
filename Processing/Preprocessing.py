@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 from scipy.signal import butter, filtfilt, periodogram
 
 
-def preprocess(ch_data,chunk_size,fs):
+def preprocess(ch_data,fs):
     # データを標準化
     scaler = StandardScaler()
     data = scaler.fit_transform(ch_data.T).T

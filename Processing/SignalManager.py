@@ -27,8 +27,3 @@ class SignalManager:
     
     def reset(self):
         self.combined_data = np.empty((self.num_channels + 2, 0))
-    
-    def get_prev_true_class(self):
-        if self.total_combined_data.shape == (self.num_channels+2,0):
-            return 0
-        return self.total_combined_data[-1,-1]

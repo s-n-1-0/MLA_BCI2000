@@ -11,6 +11,7 @@ logging.basicConfig(filename="test.log",
 import numpy as np
 import time
 from SignalManager import SignalManager
+from Preprocessing import preprocess
 import threading
 import keras
 import json
@@ -18,6 +19,7 @@ with open("./MLA_Processing/settings.json") as f:
 	settings = json.load(f)
 loaded = keras.models.load_model(settings["model_path"])
 ch_list = [0,1,2,3,4,5,6,7,8,9,10,11,12]
+fs = 500
 class BciSignalProcessing(BciGenericSignalProcessing):
 	def Construct(self):
 		parameters = [
@@ -59,19 +61,25 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 		
 def processing(module:BciSignalProcessing):
 	predict_list = []
+	true_class = 0
+	prev_true_class = 0
 	while module.is_run:
-		data = module.signals.get_last_samples()
-		if data is None or module.states['sender_trueClass'] == 0:
-			module.predict_class = 0
-			continue
+		prev_true_class = true_class
 		true_class = module.states['sender_trueClass']
-		if module.signals.get_prev_true_class() == 0 and true_class != 0:
+		data = module.signals.get_last_samples()
+		if data is None or true_class == 0:
+			module.predict_class = 0
+			time.sleep(0.01)
+			continue
+		if prev_true_class == 0 and true_class != 0:
 			module.signals.reset()
 			predict_list = []
 			module.predict_class = 0
+			time.sleep(0.01)
 			continue
-		sig = data.astype('float32')
-		sig = np.array([sig[ch_list,:]])[:,:,:,None]
+		sig = np.asarray(data).astype('float32')
+		sig = preprocess(sig[ch_list,:],fs)
+		sig = np.array([sig])[:,:,:,None]
 		fb = module.states["sender_feedback"] # fb is 0 == true_class is 0
 		#feedback
 		prediction = loaded.predict(sig)[0]
