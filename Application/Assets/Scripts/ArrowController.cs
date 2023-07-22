@@ -24,7 +24,7 @@ public class ArrowController : MonoBehaviour
     {
         if (!isStopedShift)
         {
-            shiftTime += Time.deltaTime * (isStripeSameDirectionAsArrow ? 1 : -1);
+            shiftTime += Time.deltaTime * (isStripeSameDirectionAsArrow ? -1 : 1);
             if (shiftTime > 1) shiftTime = shiftTime - 1;
             if (shiftTime < 0) shiftTime = 1 - shiftTime;
         }
