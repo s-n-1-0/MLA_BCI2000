@@ -4,10 +4,7 @@ from sklearn.preprocessing import StandardScaler
 from scipy.signal import butter, filtfilt, periodogram
 
 
-def preprocess(ch_data,fs):
-    # データを標準化
-    scaler = StandardScaler()
-    data = scaler.fit_transform(ch_data.T).T
+def preprocess(data,fs):
     #print(f"{scaler.mean_} / {scaler.scale_}")
     # バンドパスフィルタを適用
     if True:
@@ -20,6 +17,9 @@ def preprocess(ch_data,fs):
         b, a = butter(2, [low, high], btype='band')
         data = filtfilt(b, a, data)
 
+    # データを標準化
+    scaler = StandardScaler()
+    data = scaler.fit_transform(data.T).T
     # パワースペクトルへの変換
     #freq, data = periodogram(data, fs=fs)
     #"""
