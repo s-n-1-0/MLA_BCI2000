@@ -5,6 +5,7 @@ public class TaskManager : MonoBehaviour
 {
     [HideInInspector]
     public ArrowController arrow;
+    private BVREventController bvr;
     public int maxTrialsNum = 30;
     public float[] jitterTimeRange;
     public float stimTime;
@@ -13,6 +14,8 @@ public class TaskManager : MonoBehaviour
     private void Start()
     {
         var arrowObj = GameObject.Find("Target");
+        var bvrEventController = GameObject.Find("BVREventController").GetComponent<BVREventController>();
+        bvr = bvrEventController;
         arrow = arrowObj.GetComponent<ArrowController>();
         arrow.gameObject.SetActive(false);
     }
@@ -48,7 +51,8 @@ public class TaskManager : MonoBehaviour
         {
             ChangeWaitScreen(i + 1);
             yield return new WaitForSeconds((i==0 ? 7f : 0f) + UniformlyRandom());
-            
+
+            bvr.isEvent = true;
             ChangeTargetScreen(trials[i]);
             yield return new WaitForSecondsRealtime(stimTime);
         }
