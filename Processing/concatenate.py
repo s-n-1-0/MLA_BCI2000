@@ -4,7 +4,10 @@
 # %%
 import os
 import numpy as np
+from natsort import natsorted
 data_files = [d for d in os.listdir() if ".npy" == d[-4:]]
+data_files = natsorted(data_files)
+print(data_files)
 
 data_list = []
 for df in data_files:
