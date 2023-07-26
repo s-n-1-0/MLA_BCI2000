@@ -43,9 +43,18 @@ public class TaskManager : MonoBehaviour
         state.isNFBMode = isNFB;
         arrow.SetArrowType(isNFB ? ArrowType.Stripe :  ArrowType.Default);
         //---セットアップ
-        var trials = new TrialClassType[maxTrialsNum];
-        for (int i = 0; i < maxTrialsNum; i++) trials[i] = (TrialClassType)(1 + Random.Range(0, 2));
-       
+        var trials = GenerateTrials(maxTrialsNum);
+        /*
+        int l = 0,r =0;
+        foreach(var t in trials)
+        {
+            if (t == TrialClassType.Left) l++;
+            if (t == TrialClassType.Right) r++;
+        }
+        Debug.Log("合計" + trials.Length.ToString());
+        Debug.Log(l);
+        Debug.Log(r);
+        */
         //---試行
         for (int i = 0; i <  maxTrialsNum; i++)
         {
@@ -74,4 +83,30 @@ public class TaskManager : MonoBehaviour
     }
 
     private float UniformlyRandom() => Random.Range(jitterTimeRange[0], jitterTimeRange[1]);
+
+    private TrialClassType[] GenerateTrials(int count)
+    {
+        List<TrialClassType> totalList = new List<TrialClassType>();
+        while (totalList.Count < count) {
+            List<TrialClassType> alternatingList = new List<TrialClassType>();
+
+            for (int i = 0; i < 20; i++) alternatingList.Add(i % 2 == 0 ? TrialClassType.Left : TrialClassType.Right);
+            alternatingList = ShuffleList(alternatingList);
+            totalList.AddRange(alternatingList);
+        }
+        return totalList.GetRange(0,count).ToArray();
+    }
+     List<T> ShuffleList<T>(List<T> list)
+    {
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = Random.Range(0, n + 1);
+            var value = list[k];
+            list[k] = list[n];
+            list[n] = value;
+        }
+        return list;
+    }
 }
