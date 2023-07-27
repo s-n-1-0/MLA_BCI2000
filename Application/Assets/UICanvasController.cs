@@ -6,10 +6,14 @@ using UnityEngine;
 public class UICanvasController : MonoBehaviour
 {
     public TaskManager task;
-    public TextMeshProUGUI text;
+    public TextMeshProUGUI trialsNumText,maxTrialsNumText,stimTimeText;
+
     private void Update()
     {
-        text.text = task.state.trialNum.ToString();
+        trialsNumText.text = task.state.trialNum.ToString();
     }
     public void clickNFBButton(bool isNFB) => task.StartTask(isNFB);
+    public void SetStimTIme(float time) => stimTimeText.text = $"Stim : {time}s";
+    public void SetMaxTrialsNum(int num) =>maxTrialsNumText.text = $"Max : {num}" ;
+    
 }

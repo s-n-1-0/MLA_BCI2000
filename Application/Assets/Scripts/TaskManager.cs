@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 public class TaskManager : MonoBehaviour
 {
+    public UICanvasController ui;
     [HideInInspector]
     public ArrowController arrow;
     private BVREventController bvr;
     public int maxTrainTrialsNum,maxTestTrialsNum;
     public int maxTrialsNum
     {
-        get => isNFB ? maxTrainTrialsNum : maxTestTrialsNum;
+        get => state.isNFBMode ? maxTrainTrialsNum : maxTestTrialsNum;
     }
     public float stimTrainTime,stimTestTime;
     public float stimTime
     {
-        get => isNFB ? stimTrainTime : stimTestTime;
+        get => state.isNFBMode ? stimTrainTime : stimTestTime;
     }
-    public bool isNFB { get; private set; }
     public float[] jitterTimeRange;
     public GameObject buttons;
     public TaskState state { get; } = new TaskState();
@@ -48,9 +48,10 @@ public class TaskManager : MonoBehaviour
     }
     private IEnumerator _StartTask(bool isNFB)
     {
-        this.isNFB = isNFB;
         buttons.gameObject.SetActive(false);
         state.isNFBMode = isNFB;
+        ui.SetMaxTrialsNum(maxTrialsNum);
+        ui.SetStimTIme(stimTime);
         arrow.SetArrowType(isNFB ? ArrowType.Stripe :  ArrowType.Default);
         //---セットアップ
         var trials = GenerateTrials(maxTrialsNum);
