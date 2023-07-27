@@ -6,9 +6,18 @@ public class TaskManager : MonoBehaviour
     [HideInInspector]
     public ArrowController arrow;
     private BVREventController bvr;
-    public int maxTrialsNum = 30;
+    public int maxTrainTrialsNum,maxTestTrialsNum;
+    public int maxTrialsNum
+    {
+        get => isNFB ? maxTrainTrialsNum : maxTestTrialsNum;
+    }
+    public float stimTrainTime,stimTestTime;
+    public float stimTime
+    {
+        get => isNFB ? stimTrainTime : stimTestTime;
+    }
+    public bool isNFB { get; private set; }
     public float[] jitterTimeRange;
-    public float stimTime;
     public GameObject buttons;
     public TaskState state { get; } = new TaskState();
     private void Start()
@@ -39,6 +48,7 @@ public class TaskManager : MonoBehaviour
     }
     private IEnumerator _StartTask(bool isNFB)
     {
+        this.isNFB = isNFB;
         buttons.gameObject.SetActive(false);
         state.isNFBMode = isNFB;
         arrow.SetArrowType(isNFB ? ArrowType.Stripe :  ArrowType.Default);

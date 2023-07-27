@@ -11,8 +11,10 @@
 	"commandsInProgDir": [
 		"execute script ../batch/FindPortablePython.bat"
 	],
-	"maxTrialsNum":100,
+	"maxTrainTrialsNum":50,
+	"maxTestTrialsNum":100,
+	"stimTrainTime":8.0,
+	"stimTestTime":4.0,
 	"jitterTimeRangeStart":1.0,
-	"jitterTimeRangeEnd":3.0,
-	"stimTime":4.0
+	"jitterTimeRangeEnd":3.0
 }
