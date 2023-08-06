@@ -5,6 +5,26 @@ import model_card_toolkit as mct
 import base64
 import requests
 import datetime
+import pandas as pd
+import matplotlib.pyplot as plt
+from io import BytesIO
+#学習履歴の取得
+history = pd.read_csv("c:/lab/models/dec1/history.csv")
+history
+# %%
+epochs = len(history["binary_accuracy"])
+history_base64_list = []
+for item in ["binary_accuracy","loss","recall","specificity"]:
+    plt.plot(range(1,epochs+1),history[item],label="train_"+item)
+    plt.plot(range(1,epochs+1),history["val_"+item],label="valid_"+item)
+    plt.legend(loc="upper left",bbox_to_anchor=(1,1))
+    img_in_memory = BytesIO()
+    plt.savefig(img_in_memory,format='png', bbox_inches='tight')
+    img_in_memory.seek(0)
+    plt.show()
+    history_base64_list.append(base64.b64encode(img_in_memory.getvalue()))
+# %%
+# 画像データの取得
 response = requests.get("https://i.gyazo.com/dc04eaf10fa1e527b567261dd516d0e9.png")
 file_data = response.content
 openbmi_mitask_image = base64.b64encode(file_data).decode('utf-8')
@@ -48,8 +68,8 @@ model_card.model_parameters = mct.ModelParameters(
 #
 #評価
 #
-model_card.quantitative_analysis.graphics.description = ('正解率(Acc),再現率(Recall),特異度(Specificity),')
-#model_card.quantitative_analysis.graphics.collection =[mct.Graphic("",openbmi_mitask_image)]
+model_card.quantitative_analysis.graphics.description = ('正解率(Accuracy),損失(Loss),再現率(Recall),特異度(Specificity),')
+model_card.quantitative_analysis.graphics.collection =[mct.Graphic("",h64) for h64 in history_base64_list]
 
 toolkit.update_model_card(model_card)
 
