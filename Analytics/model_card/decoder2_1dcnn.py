@@ -25,7 +25,7 @@ for item in ["binary_accuracy","loss","recall_5","specificity"]:
 # %%
 #　概要
 #
-toolkit,model_card = utils.build_base_card('Decoder 1号',"001")
+toolkit,model_card = utils.build_base_card('Decoder 2号',"001")
 details = model_card.model_details
 details.version.diff="初期バージョン"
 details.overview = (
