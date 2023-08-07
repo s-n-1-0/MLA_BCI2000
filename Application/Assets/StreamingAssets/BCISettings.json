@@ -12,7 +12,7 @@
 		"execute script ../batch/FindPortablePython.bat"
 	],
 	"maxTrainTrialsNum":50,
-	"maxTestTrialsNum":100,
+	"maxTestTrialsNum":50,
 	"stimTrainTime":8.0,
 	"stimTestTime":4.0,
 	"jitterTimeRangeStart":1.0,
