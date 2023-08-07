@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 public class TaskManager : MonoBehaviour
 {
@@ -95,6 +96,7 @@ public class TaskManager : MonoBehaviour
 
     private float UniformlyRandom() => Random.Range(jitterTimeRange[0], jitterTimeRange[1]);
 
+    //TODO: 以下のコード要整理
     private TrialClassType[] GenerateTrials(int count)
     {
         List<TrialClassType> totalList = new List<TrialClassType>();
@@ -103,9 +105,21 @@ public class TaskManager : MonoBehaviour
 
             for (int i = 0; i < 20; i++) alternatingList.Add(i % 2 == 0 ? TrialClassType.Left : TrialClassType.Right);
             alternatingList = ShuffleList(alternatingList);
+
             totalList.AddRange(alternatingList);
         }
-        return totalList.GetRange(0,count).ToArray();
+        totalList = totalList.GetRange(0, count);
+        while (checkConsecutiveValues(totalList, 4))
+        {
+          totalList = sortConsecutiveValues(totalList,4);
+            //最初の4つが連続の場合永久ループしかねないので再度生成
+            if (totalList.GetRange(0, 4).All(x => x == totalList[0]))
+            {
+                totalList = GenerateTrials(count).ToList();
+            }
+        }
+        //totalList.ForEach(x => Debug.Log(x));
+        return totalList.ToArray();
     }
      List<T> ShuffleList<T>(List<T> list)
     {
@@ -119,5 +133,53 @@ public class TaskManager : MonoBehaviour
             list[n] = value;
         }
         return list;
+    }
+    bool checkConsecutiveValues(List<TrialClassType> list,int max)
+    {
+        int count = 0;
+        TrialClassType prevX = TrialClassType.None;
+        foreach(var x in list)
+        {
+            if (x == prevX)
+            {
+                count++;
+                if(count >= max)
+                {
+                    //Debug.Log(count);
+                    return true;
+                }
+            }
+            else count = 1;
+            
+            prevX = x;
+        }
+        return false;
+    }
+
+    List<TrialClassType> sortConsecutiveValues(List<TrialClassType> list, int max)
+    {
+        int count = 0;
+        TrialClassType prevX = TrialClassType.None;
+        var newList = new List<TrialClassType>();
+        foreach (var x in list)
+        {
+            if (x == prevX)
+            {
+                count++;
+                if (count >= max)
+                {
+                    count--;
+                    newList.Insert(0,x);
+                }
+                else newList.Add(x);
+            }
+            else
+            {
+                newList.Add(x);
+                count = 1;
+            }
+            prevX = x;
+        }
+        return newList;
     }
 }
