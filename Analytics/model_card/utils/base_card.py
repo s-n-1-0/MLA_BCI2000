@@ -21,8 +21,6 @@ def build_base_card(model_name:str,
     mct.Owner(name = 'BCI研究グループ', contact= '静岡理工科大学大学院')
     ]
     details.references = [mct.Reference(
-    'https://iopscience.iop.org/article/10.1088/1741-2552/aace8c/meta'
-    ),mct.Reference(
         'https://academic.oup.com/gigascience/article/8/5/giz002/5304369'
     )]
     v = details.version

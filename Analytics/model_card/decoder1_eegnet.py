@@ -34,6 +34,9 @@ details.overview = (
 details.documentation = ("前処理としてEEGLABを通し、アーチファクトの影響の多いデータの除去、ダウンサンプリング(1000hz->500hz)、バンドパスフィルターの適用(1hzから30hz)を行っています。\n"
                          "EEGLABを通した後、標準化とバンドパスフィルタ(8hzから30hz)を適用しています。\n"
                          "['FC5','FC1','FC2','FC6','C3','C1','Cz','C2','C4','CP5','CP1','CP2','CP6']電極(fs=500hz)を使用。[54, 34, 21, 35, 1]番の被験者を検証データ、それ以外を学習データにしました。")
+model_card.model_details.references.append(mct.Reference(
+    'https://iopscience.iop.org/article/10.1088/1741-2552/aace8c/meta'
+    ))
 #
 #技術的パラメータ
 #
