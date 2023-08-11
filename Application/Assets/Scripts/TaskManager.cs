@@ -11,16 +11,20 @@ public class TaskManager : MonoBehaviour
     public int maxTrainTrialsNum,maxTestTrialsNum;
     public int maxTrialsNum
     {
-        get => state.isNFBMode ? maxTrainTrialsNum : maxTestTrialsNum;
+        get => state.isFeedback ? maxTrainTrialsNum : maxTestTrialsNum;
     }
     public float stimTrainTime,stimTestTime;
     public float stimTime
     {
-        get => state.isNFBMode ? stimTrainTime : stimTestTime;
+        get => state.isFeedback ? stimTrainTime : stimTestTime;
     }
     public float[] jitterTimeRange;
     public GameObject buttons;
-    public TaskState state { get; } = new TaskState();
+    public TaskState state { get; private set; }
+    private void Awake()
+    {
+        state = new TaskState(GetComponent<UnityBCI2000>());
+    }
     private void Start()
     {
         var arrowObj = GameObject.Find("Target");
@@ -50,7 +54,7 @@ public class TaskManager : MonoBehaviour
     private IEnumerator _StartTask(bool isNFB)
     {
         buttons.gameObject.SetActive(false);
-        state.isNFBMode = isNFB;
+        state.isFeedback = isNFB;
         ui.SetMaxTrialsNum(maxTrialsNum);
         ui.SetStimTIme(stimTime);
         arrow.SetArrowType(isNFB ? ArrowType.Stripe :  ArrowType.Default);

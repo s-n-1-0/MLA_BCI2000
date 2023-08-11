@@ -6,7 +6,7 @@ public class DemoAppManager : MonoBehaviour
 {
     private ArrowController arrow;
     public int trialsNum = 30;
-    public TaskState state { get; } = new TaskState();
+    public TaskStateInterface state { get; } = new DummyTaskState();
     private void Start()
     {
         var arrowObj = GameObject.Find("Target");

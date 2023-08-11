@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class DemoAppUIController : MonoBehaviour
 {
-    private TaskState state;
+    private DummyTaskState state;
     void Start()
     {
-        state = gameObject.GetComponent<DemoAppManager>().state;
+        state = gameObject.GetComponent<DemoAppManager>().state as DummyTaskState;
     }
 
     public void ChangeTargetDirection(bool isLeft)
     {
-        state.predictClassType = isLeft ? TrialClassType.Left : TrialClassType.Right;
+        state._predictClassType = isLeft ? TrialClassType.Left : TrialClassType.Right;
     }
 }

@@ -27,7 +27,6 @@ public class BCIManager : MonoBehaviour
             bci.Module3Args = bciSettings.module3Args;
             bci.initCommands = bciSettings.commandsInProgDir;
         }
-        GetComponent<TaskStateCommunication>().enabled = true;
         bci.enabled = true;
 
         if (isReadJsonToTaskManager)
