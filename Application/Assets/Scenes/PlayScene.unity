@@ -3088,7 +3088,7 @@ MonoBehaviour:
   TelnetPort: 0
   Timeout: 10000
   DontStartModules: 0
-  StartWithScene: 1
+  StartWithScene: 0
   ShutdownWithScene: 1
   Module1: SignalGenerator
   Module1Args: []
