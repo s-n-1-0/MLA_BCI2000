@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 import datetime
-
+import random
 sys.path.append(os.path.join(Path().resolve(), "MLA_Processing"))
 logging.basicConfig(filename="test.log",
 	level=logging.INFO)
@@ -46,8 +46,8 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 		thread.start()
 
 	def Process(self, stream_sig):
-		trial_num = self.states['sender_trialNum']
-		true_class = self.states['sender_trueClass'] # 0(wait) or 1 or 2 
+		trial_num = self.states['trialNum']
+		true_class = self.states['trueClass'] # 0(wait) or 1 or 2 
 		self.signals.add_signal(trial_num,stream_sig,true_class,self.predict_count,self.predict_class)
 		self.states['predictClass'] = self.predict_class
 		
@@ -61,7 +61,7 @@ def processing(module:BciSignalProcessing):
 	isall_reset = True
 	module.predict_count = 0
 	while module.is_run:
-		true_class = module.states['sender_trueClass']
+		true_class = module.states['trueClass']
 		data = module.signals.get_last_samples()
 		if data is None or true_class == 0:
 			if (not isall_reset) and  true_class == 0:
@@ -76,7 +76,7 @@ def processing(module:BciSignalProcessing):
 		sig = np.asarray(data).astype('float32')
 		sig = preprocess(sig[ch_list,:],fs)
 		sig = np.array([sig])[:,:,:,None]
-		fb = module.states["sender_feedback"] # fb is 0 == true_class is 0
+		fb = module.states["feedback"] # fb is 0 == true_class is 0
 		#feedback
 		prediction = loaded.predict(sig)[0]
 		prediction = 1 if prediction > 0.5 else 0

@@ -6,7 +6,6 @@ using UnityEngine;
 
 public class BCIManager : MonoBehaviour
 {
-    public GameObject bciSenderPrefab;
     public bool isReadJsonToThis = true;
     public bool isReadJsonToTaskManager = true;
     private void Awake()
@@ -26,8 +25,9 @@ public class BCIManager : MonoBehaviour
             bci.Module1Args = bciSettings.module1Args;
             bci.Module2Args = bciSettings.module2Args;
             bci.Module3Args = bciSettings.module3Args;
-            bci.commandsInProgDir = bciSettings.commandsInProgDir;
+            bci.initCommands = bciSettings.commandsInProgDir;
         }
+        GetComponent<TaskStateCommunication>().enabled = true;
         bci.enabled = true;
 
         if (isReadJsonToTaskManager)
@@ -40,9 +40,7 @@ public class BCIManager : MonoBehaviour
             task.jitterTimeRange = new float[] { (float)bciSettings.jitterTimeRangeStart, (float)bciSettings.jitterTimeRangeEnd };
         }
 
-        var bciSender = Instantiate(bciSenderPrefab).GetComponent<BCI2000StateSender>();
-        bciSender.name = bciSenderPrefab.name;
-        bciSender.BCIObject = this.gameObject;
+      
     }
     
 }

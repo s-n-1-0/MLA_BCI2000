@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311953, g: 0.38074014, b: 0.3587274, a: 1}
+  m_IndirectSpecularColor: {r: 0.3708985, g: 0.3783704, b: 0.35722548, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3063,6 +3063,7 @@ GameObject:
   - component: {fileID: 1545875101}
   - component: {fileID: 1545875102}
   - component: {fileID: 1545875100}
+  - component: {fileID: 1545875104}
   - component: {fileID: 1545875103}
   m_Layer: 0
   m_Name: BCI2000
@@ -3088,16 +3089,19 @@ MonoBehaviour:
   TelnetPort: 0
   Timeout: 10000
   DontStartModules: 0
+  StartWithScene: 1
+  ShutdownWithScene: 1
   Module1: SignalGenerator
   Module1Args: []
   Module2: DummySignalProcessing
   Module2Args: []
   Module3: DummyApplication
   Module3Args: []
-  commandsInProgDir: []
+  initCommands: []
   LogFile: 
   LogStates: 0
   LogPrompts: 0
+  parameterFiles: []
 --- !u!4 &1545875101
 Transform:
   m_ObjectHideFlags: 0
@@ -3125,8 +3129,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da9b0f15104f1f748968f9d040edba7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bciSenderPrefab: {fileID: 8048719298636257831, guid: 4eedcb4b0e91101428ec87a42d658cc1,
-    type: 3}
   isReadJsonToThis: 1
   isReadJsonToTaskManager: 1
 --- !u!114 &1545875103
@@ -3149,6 +3151,18 @@ MonoBehaviour:
   stimTestTime: 0
   jitterTimeRange: []
   buttons: {fileID: 175036576}
+--- !u!114 &1545875104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1545875099}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1df151cef535284aa2ab705bb96fa0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1673458522
 GameObject:
   m_ObjectHideFlags: 0
