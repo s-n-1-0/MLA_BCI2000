@@ -1,0 +1,3 @@
+[submodule "tests"]
+	path = tests
+	url = https://github.com/s-n-1-0/sist_eeg_tests.git
