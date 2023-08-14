@@ -1,5 +1,5 @@
 {
-    "model_path":"C:/test/model.h5",
+    "model_path":"C:/MLA Models/d2_model.h5",
     "save_path":"C:/MLA_Saves",
     "subject_id":"001"
 }
