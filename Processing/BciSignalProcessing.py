@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 import datetime
-import random
+
 sys.path.append(os.path.join(Path().resolve(), "MLA_Processing"))
 logging.basicConfig(filename="test.log",
 	level=logging.INFO)
@@ -15,9 +15,15 @@ from Preprocessing import preprocess
 import threading
 import keras
 import json
+def transpose(batch:np.ndarray):
+	return batch.transpose([0,2,1])
+
+#this is a dummy
+def specificity(y_true, y_pred):
+    return None
 with open("./MLA_Processing/settings.json") as f:
 	settings = json.load(f)
-loaded = keras.models.load_model(settings["model_path"])
+loaded = keras.models.load_model(settings["model_path"],custom_objects={"specificity":specificity})
 ch_list = [0,1,2,3,4,5,6,7,8,9,10,11,12]
 fs = 500
 class BciSignalProcessing(BciGenericSignalProcessing):
@@ -75,7 +81,7 @@ def processing(module:BciSignalProcessing):
 		module.predict_count += 1
 		sig = np.asarray(data).astype('float32')
 		sig = preprocess(sig[ch_list,:],fs)
-		sig = np.array([sig])[:,:,:,None]
+		sig = transpose(np.array([sig]))
 		fb = module.states["feedback"] # fb is 0 == true_class is 0
 		#feedback
 		prediction = loaded.predict(sig)[0]
