@@ -15,9 +15,15 @@ from Preprocessing import preprocess
 import threading
 import keras
 import json
+def transpose(batch:np.ndarray):
+	return batch.transpose([0,2,1])
+
+#this is a dummy
+def specificity(y_true, y_pred):
+    return None
 with open("./MLA_Processing/settings.json") as f:
 	settings = json.load(f)
-loaded = keras.models.load_model(settings["model_path"])
+loaded = keras.models.load_model(settings["model_path"],custom_objects={"specificity":specificity})
 ch_list = [0,1,2,3,4,5,6,7,8,9,10,11,12]
 fs = 500
 class BciSignalProcessing(BciGenericSignalProcessing):
@@ -46,8 +52,8 @@ class BciSignalProcessing(BciGenericSignalProcessing):
 		thread.start()
 
 	def Process(self, stream_sig):
-		trial_num = self.states['sender_trialNum']
-		true_class = self.states['sender_trueClass'] # 0(wait) or 1 or 2 
+		trial_num = self.states['trialNum']
+		true_class = self.states['trueClass'] # 0(wait) or 1 or 2 
 		self.signals.add_signal(trial_num,stream_sig,true_class,self.predict_count,self.predict_class)
 		self.states['predictClass'] = self.predict_class
 		
@@ -61,7 +67,7 @@ def processing(module:BciSignalProcessing):
 	isall_reset = True
 	module.predict_count = 0
 	while module.is_run:
-		true_class = module.states['sender_trueClass']
+		true_class = module.states['trueClass']
 		data = module.signals.get_last_samples()
 		if data is None or true_class == 0:
 			if (not isall_reset) and  true_class == 0:
@@ -75,8 +81,8 @@ def processing(module:BciSignalProcessing):
 		module.predict_count += 1
 		sig = np.asarray(data).astype('float32')
 		sig = preprocess(sig[ch_list,:],fs)
-		sig = np.array([sig])[:,:,:,None]
-		fb = module.states["sender_feedback"] # fb is 0 == true_class is 0
+		sig = transpose(np.array([sig]))
+		fb = module.states["feedback"] # fb is 0 == true_class is 0
 		#feedback
 		prediction = loaded.predict(sig)[0]
 		prediction = 1 if prediction > 0.5 else 0

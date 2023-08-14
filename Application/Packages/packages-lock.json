@@ -90,11 +90,11 @@
       }
     },
     "org.bci2000.unitybci2000": {
-      "version": "https://github.com/s-n-1-0/UnityBCI2000.git#meta",
+      "version": "https://github.com/s-n-1-0/UnityBCI2000.git#preview_meta",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "ad72c7b0ee55619e23a2a801a38013ef5522213f"
+      "hash": "c83c35fbf654e0267feec00e44bd6f4aeeae13a9"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

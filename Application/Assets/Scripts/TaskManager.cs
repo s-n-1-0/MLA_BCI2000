@@ -8,19 +8,25 @@ public class TaskManager : MonoBehaviour
     [HideInInspector]
     public ArrowController arrow;
     private BVREventController bvr;
+    private UnityBCI2000 bci2000;
     public int maxTrainTrialsNum,maxTestTrialsNum;
     public int maxTrialsNum
     {
-        get => state.isNFBMode ? maxTrainTrialsNum : maxTestTrialsNum;
+        get => state.isFeedback ? maxTrainTrialsNum : maxTestTrialsNum;
     }
     public float stimTrainTime,stimTestTime;
     public float stimTime
     {
-        get => state.isNFBMode ? stimTrainTime : stimTestTime;
+        get => state.isFeedback ? stimTrainTime : stimTestTime;
     }
     public float[] jitterTimeRange;
     public GameObject buttons;
-    public TaskState state { get; } = new TaskState();
+    public TaskState state { get; private set; }
+    private bool isSetConfig = false;
+    private void Awake()
+    {
+        state = new TaskState(GetComponent<UnityBCI2000>());
+    }
     private void Start()
     {
         var arrowObj = GameObject.Find("Target");
@@ -28,6 +34,7 @@ public class TaskManager : MonoBehaviour
         bvr = bvrEventController;
         arrow = arrowObj.GetComponent<ArrowController>();
         arrow.gameObject.SetActive(false);
+        bci2000 = GetComponent<UnityBCI2000>();
     }
 
     private void Update()
@@ -49,8 +56,12 @@ public class TaskManager : MonoBehaviour
     }
     private IEnumerator _StartTask(bool isNFB)
     {
+        if (isSetConfig) bci2000.StartBCI2000();
+        else bci2000.ResumeBCI2000();
+        isSetConfig = true;
+        yield return new WaitForSeconds(1);
         buttons.gameObject.SetActive(false);
-        state.isNFBMode = isNFB;
+        state.isFeedback = isNFB;
         ui.SetMaxTrialsNum(maxTrialsNum);
         ui.SetStimTIme(stimTime);
         arrow.SetArrowType(isNFB ? ArrowType.Stripe :  ArrowType.Default);
@@ -71,7 +82,7 @@ public class TaskManager : MonoBehaviour
         for (int i = 0; i <  maxTrialsNum; i++)
         {
             ChangeWaitScreen(i + 1);
-            yield return new WaitForSeconds((i==0 ? 7f : 0f) + UniformlyRandom());
+            yield return new WaitForSeconds((i==0 ? 6f : 0f) + UniformlyRandom());
 
             bvr.isEvent = true;
             ChangeTargetScreen(trials[i]);
@@ -79,6 +90,7 @@ public class TaskManager : MonoBehaviour
         }
         ChangeWaitScreen(9999);
         buttons.gameObject.SetActive(true);
+        bci2000.SuspendBCI2000();
     }
     private void ChangeWaitScreen(int trialNum)
     {

@@ -1390,7 +1390,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u77E2\u5370\u306E\u65B9\u5411\u306B\u5BFE\u5FDC\u3059\u308B\n\u624B\u306E\u904B\u52D5\u3092\u60F3\u50CF\u3057\u3066\u304F\u3060\u3055\u3044"
+  m_text: "\u77E2\u5370\u306E\u65B9\u5411\u306B\u5BFE\u5FDC\u3059\u308B\n\u624B\u306E\u611F\u89E6\u3084\u904B\u52D5\u3092\u60F3\u50CF\u3057\u3066\u304F\u3060\u3055\u3044"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 510f5eb6ae9dbeb41b3a9947f140a2f7, type: 2}
   m_sharedMaterial: {fileID: 1537630152350103187, guid: 510f5eb6ae9dbeb41b3a9947f140a2f7,
@@ -3088,16 +3088,19 @@ MonoBehaviour:
   TelnetPort: 0
   Timeout: 10000
   DontStartModules: 0
+  StartWithScene: 0
+  ShutdownWithScene: 1
   Module1: SignalGenerator
   Module1Args: []
   Module2: DummySignalProcessing
   Module2Args: []
   Module3: DummyApplication
   Module3Args: []
-  commandsInProgDir: []
+  initCommands: []
   LogFile: 
   LogStates: 0
   LogPrompts: 0
+  parameterFiles: []
 --- !u!4 &1545875101
 Transform:
   m_ObjectHideFlags: 0
@@ -3125,8 +3128,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da9b0f15104f1f748968f9d040edba7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bciSenderPrefab: {fileID: 8048719298636257831, guid: 4eedcb4b0e91101428ec87a42d658cc1,
-    type: 3}
   isReadJsonToThis: 1
   isReadJsonToTaskManager: 1
 --- !u!114 &1545875103
@@ -3310,7 +3311,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u77E2\u5370\u306E\u65B9\u5411\u306B\u5BFE\u5FDC\u3059\u308B\n\u624B\u306E\u904B\u52D5\u3092\u60F3\u50CF\u3057\u3066\u304F\u3060\u3055\u3044\u3002\n\u60F3\u50CF\u306E\u7D50\u679C\u304C\u7E1E\u6A21\u69D8\u306E\u65B9\u5411\u306B\u53CD\u6620\u3055\u308C\u307E\u3059\u3002"
+  m_text: "\u77E2\u5370\u306E\u65B9\u5411\u306B\u5BFE\u5FDC\u3059\u308B\n\u624B\u306E\u611F\u89E6\u3084\u904B\u52D5\u3092\u60F3\u50CF\u3057\u3066\u304F\u3060\u3055\u3044\u3002\n\u60F3\u50CF\u306E\u7D50\u679C\u304C\u7E1E\u6A21\u69D8\u306E\u65B9\u5411\u306B\u53CD\u6620\u3055\u308C\u307E\u3059\u3002"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 510f5eb6ae9dbeb41b3a9947f140a2f7, type: 2}
   m_sharedMaterial: {fileID: 1537630152350103187, guid: 510f5eb6ae9dbeb41b3a9947f140a2f7,
