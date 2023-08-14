@@ -10,7 +10,7 @@ public class UICanvasController : MonoBehaviour
     public GameObject announcePanel, testPanel, trainPanel;
     private void Update()
     {
-        trialsNumText.text = task.state.trialNum.ToString();
+        trialsNumText.text = task.state?.trialNum.ToString() ?? "";
     }
     public void ToggleAnnouncePanel() => announcePanel.SetActive(!announcePanel.activeSelf);
     public void ToggleTestPanel() => testPanel.SetActive(!testPanel.activeSelf);
