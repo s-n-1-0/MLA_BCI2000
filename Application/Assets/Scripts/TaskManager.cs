@@ -5,6 +5,7 @@ using UnityEngine;
 public class TaskManager : MonoBehaviour
 {
     public UICanvasController ui;
+    public BeepSound sound;
     [HideInInspector]
     public ArrowController arrow;
     private BVREventController bvr;
@@ -93,6 +94,7 @@ public class TaskManager : MonoBehaviour
         ChangeWaitScreen(9999);
         buttons.gameObject.SetActive(true);
         bci2000.SuspendBCI2000();
+        sound.Beep();
     }
     private void ChangeWaitScreen(int trialNum)
     {
