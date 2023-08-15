@@ -56,6 +56,20 @@ public class TaskManager : MonoBehaviour
     }
     private IEnumerator _StartTask(bool isNFB)
     {
+        //---セットアップ
+        var trials = GenerateTrials(maxTrialsNum);
+        /*
+        int l = 0, r = 0;
+        foreach (var t in trials)
+        {
+            if (t == TrialClassType.Left) l++;
+            if (t == TrialClassType.Right) r++;
+        }
+        Debug.Log("合計" + trials.Length.ToString());
+        Debug.Log(l);
+        Debug.Log(r);
+        */
+
         if (isSetConfig) bci2000.StartBCI2000();
         else bci2000.ResumeBCI2000();
         isSetConfig = true;
@@ -65,19 +79,7 @@ public class TaskManager : MonoBehaviour
         ui.SetMaxTrialsNum(maxTrialsNum);
         ui.SetStimTIme(stimTime);
         arrow.SetArrowType(isNFB ? ArrowType.Stripe :  ArrowType.Default);
-        //---セットアップ
-        var trials = GenerateTrials(maxTrialsNum);
-        /*
-        int l = 0,r =0;
-        foreach(var t in trials)
-        {
-            if (t == TrialClassType.Left) l++;
-            if (t == TrialClassType.Right) r++;
-        }
-        Debug.Log("合計" + trials.Length.ToString());
-        Debug.Log(l);
-        Debug.Log(r);
-        */
+        
         //---試行
         for (int i = 0; i <  maxTrialsNum; i++)
         {
@@ -111,16 +113,8 @@ public class TaskManager : MonoBehaviour
     //TODO: 以下のコード要整理
     private TrialClassType[] GenerateTrials(int count)
     {
-        List<TrialClassType> totalList = new List<TrialClassType>();
-        while (totalList.Count < count) {
-            List<TrialClassType> alternatingList = new List<TrialClassType>();
-
-            for (int i = 0; i < 20; i++) alternatingList.Add(i % 2 == 0 ? TrialClassType.Left : TrialClassType.Right);
-            alternatingList = ShuffleList(alternatingList);
-
-            totalList.AddRange(alternatingList);
-        }
-        totalList = totalList.GetRange(0, count);
+        List<TrialClassType> totalList = Enumerable.Repeat(TrialClassType.Left, 50).Concat(Enumerable.Repeat(TrialClassType.Right, 50)).ToList();
+        totalList = ShuffleList(totalList);
         while (checkConsecutiveValues(totalList, 4))
         {
           totalList = sortConsecutiveValues(totalList,4);
