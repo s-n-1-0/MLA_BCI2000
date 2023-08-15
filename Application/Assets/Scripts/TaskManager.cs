@@ -84,7 +84,7 @@ public class TaskManager : MonoBehaviour
         for (int i = 0; i <  maxTrialsNum; i++)
         {
             ChangeWaitScreen(i + 1);
-            yield return new WaitForSeconds((i==0 ? 6f : 0f) + UniformlyRandom());
+            yield return new WaitForSeconds((i==0 ? 10f : 0f) + UniformlyRandom());
 
             bvr.isEvent = true;
             ChangeTargetScreen(trials[i]);
