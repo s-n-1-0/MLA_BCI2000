@@ -115,7 +115,7 @@ public class TaskManager : MonoBehaviour
     //TODO: 以下のコード要整理
     private TrialClassType[] GenerateTrials(int count)
     {
-        List<TrialClassType> totalList = Enumerable.Repeat(TrialClassType.Left, 50).Concat(Enumerable.Repeat(TrialClassType.Right, 50)).ToList();
+        List<TrialClassType> totalList = Enumerable.Repeat(TrialClassType.Left, count/2).Concat(Enumerable.Repeat(TrialClassType.Right, count/2)).ToList();
         totalList = ShuffleList(totalList);
         while (checkConsecutiveValues(totalList, 4))
         {
