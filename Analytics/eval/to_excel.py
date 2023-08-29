@@ -51,8 +51,8 @@ acc_dict
 # %% シート作成
 
 #ファイル名の次の列を0番目とカウント
-heads_headers = ["参加者番号","日目"]
-tails_headers = ["FB無1-1","FB無1-2","FB有1","FB有2","FB無2-1","FB無2-2"]
+heads_headers = ["参加者番号","〇日目"]
+tails_headers = ["無し1-1","無し1-2","無し1平均","","有り1","有り2","有り平均","","無し2-1","無し2-2","無し2平均",""]
 def make_df(headers:list,d,data_colnum,offset = 2):
     new_data = []
     subjects = sorted(d.keys())
@@ -61,7 +61,13 @@ def make_df(headers:list,d,data_colnum,offset = 2):
         days = sorted(subject_dict.keys())
         for day in days:
             #セッションは既に変換時ソート済みなのでそのまま利用できる
-            row_data = [d[offset+data_colnum] if not np.isnan(d[offset+data_colnum]) else d[offset+data_colnum-1] for d in subject_dict[day]]
+            _row_data = [d[offset+data_colnum] if not np.isnan(d[offset+data_colnum]) else d[offset+data_colnum-1] for d in subject_dict[day]]
+            row_data = []
+            for i in range(0,6,2):
+                row_data.append(_row_data[i])
+                row_data.append(_row_data[i+1])
+                row_data.append(np.mean([_row_data[i],_row_data[i+1]]))
+                row_data.append("")
             new_data.append([subject,day]+row_data)
     df = pd.DataFrame(new_data, columns =headers)
     return df
