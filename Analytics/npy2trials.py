@@ -27,11 +27,15 @@ for i in range(full_data.shape[0]):
         if prev_pc != pc:
             prev_pc = pc
             if pc > 0:
-                predict_count_indexes.append(j)
+                k = 1
+                while j+k < len(predict_counts) and predict_counts[j+k] == pc:k+=1
+                k -= 1
+                #print((pc,predict_counts[j+k],k))
+                predict_count_indexes.append((j,j+k))
 
     #print(predict_count_indexes)
-    def pick_predictclass(pci):
-        x = stim_data[-1,pci:pci+100]
+    def pick_predictclass(pci,end):
+        x = stim_data[-1,pci:end+1]
         mode = stats.mode(x,keepdims=True)[0]
         if mode == 0:
             for f in x:
@@ -39,7 +43,7 @@ for i in range(full_data.shape[0]):
                     return f
         return mode
     #カウントアップと同時に予測フラグが立つわけではないので最頻値で求める
-    _predictclass_list = [int(pick_predictclass(pci)) for pci in predict_count_indexes]
+    _predictclass_list = [int(pick_predictclass(pci[0],pci[1])) for pci in predict_count_indexes]
     predictclass_list.append(_predictclass_list)
 stim_data = np.array(stim_data_list)
 stim_data.shape
