@@ -5,6 +5,7 @@ import json
 import numpy as np
 from npy2trials import load_data
 from eeghdf import EEGHDFUpdater
+import matplotlib.pyplot as plt
 fs = 500
 with open('./eval/settings.json') as f:
     settings = json.load(f)
@@ -19,13 +20,25 @@ def build_hdf(subject,day):
     for data_path,name in zip(file_paths,file_names):
         name = name.replace("_concatenate","")
         if "s2" in name or "s3" in name: continue #FB有りを除外
-        data,_,flag_list = load_data(np.load(data_path),fs)
-        data  = data[:,:13,:] #使わないチャンネルを削除
+        _,_,flag_list = load_data(np.load(data_path),fs)
+        
         for i,flag in enumerate(["left" if flag == 1 else "right" for flag in flag_list]):
-            updater.add_numpy(data[i,:,:],[0],[flag],data.shape[2],
+            full_data  = np.load(f"{subject_day_dir}/{name}/{i+1}.npy") #使わないチャンネルを削除
+            data = full_data[:13,:]
+            tlist = list(full_data[-3,:])
+            si = 0
+            for i,f in enumerate(tlist):
+                if f == 0:
+                    si = i
+                else:
+                    break
+            #plt.plot(range(full_data.shape[1]),full_data[-3,:])
+            #plt.show()
+            updater.add_numpy(data,[0],[flag],data.shape[1],
                               dataset_attrs={"subject":int(subject),
                                             "session":day,
-                                            "mla_key":name.split("_")[0]})
+                                            "mla_key":name.split("_")[0],
+                                            "stim_index":si})
 subjects = [f for f in os.listdir(dataset_dir) if os.path.isdir(os.path.join(dataset_dir, f))]
 for s in subjects:
     #ignore
