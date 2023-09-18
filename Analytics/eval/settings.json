@@ -1,5 +1,6 @@
 {
     "dataset_dir":"C:/MLA_Saves_Bk",
+    "h5_path":"C:/test/test.h5",
     "subject":"0000",
     "day":"0",
     "run_all":false
