@@ -24,14 +24,20 @@ def build_hdf(subject,day):
         
         for i,flag in enumerate(["left" if flag == 1 else "right" for flag in flag_list]):
             full_data  = np.load(f"{subject_day_dir}/{name}/{i+1}.npy") #使わないチャンネルを削除
-            data = full_data[:13,:]
             tlist = list(full_data[-3,:])
             si = 0
+            ei = 0
+            issi = False
             for i,f in enumerate(tlist):
-                if f == 0:
+                if f == 0 and not issi:
                     si = i
                 else:
+                    issi = True
+                if f ==0 and issi:
+                    ei = i
                     break
+            si += 1
+            data = full_data[:13,:ei]
             #plt.plot(range(full_data.shape[1]),full_data[-3,:])
             #plt.show()
             updater.add_numpy(data,[0],[flag],data.shape[1],
