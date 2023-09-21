@@ -22,7 +22,8 @@ def generate_notebook(subject,day):
         f"{eval_dir}/{name}.ipynb",
         parameters=dict(data_path=data_path,d1_model_path=d1_model_path,d2_model_path=d2_model_path)
         )
-_subject = settings["subject"]
+subjects = settings["subjects"]
+
 _day = settings["day"]
 run_all = settings["run_all"]
 if run_all:
@@ -34,6 +35,6 @@ if run_all:
         for d in days:
             generate_notebook(s,d)
 else:
-    generate_notebook(_subject,_day)
-
+    for subject in subjects:
+        generate_notebook(subject,_day)
 # %%
