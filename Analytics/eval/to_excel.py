@@ -9,6 +9,7 @@ with open('settings.json') as f:
     settings = json.load(f)
     dataset_dir = settings['dataset_dir']
 file_keys = ["s1m1","s1m2","s2","s3","s4m1","s4m2"]
+isalignment = True #FB有りを除いて整列 
 # %%
 acc_output_path = dataset_dir + "/evals/_output_acc.csv"
 acc_data = pd.read_csv(acc_output_path,header=None).values
@@ -51,24 +52,37 @@ acc_dict
 # %% シート作成
 
 #ファイル名の次の列を0番目とカウント
-heads_headers = ["参加者番号","〇日目"]
-tails_headers = ["無し1-1","無し1-2","無し1平均","","有り1","有り2","有り平均","","無し2-1","無し2-2","無し2平均",""]
+if isalignment:
+    heads_headers = ["参加者番号"]
+    tails_headers = [f"{i+1}日目FB無{j+1}" for i in range(4) for j in range(2)]
+else:
+    heads_headers = ["参加者番号","〇日目"]
+    tails_headers = ["無し1-1","無し1-2","無し1平均","","有り1","有り2","有り平均","","無し2-1","無し2-2","無し2平均",""]
 def make_df(headers:list,d,data_colnum,offset = 2):
     new_data = []
     subjects = sorted(d.keys())
     for subject in subjects:
         subject_dict = acc_dict[subject]
         days = sorted(subject_dict.keys())
-        for day in days:
-            #セッションは既に変換時ソート済みなのでそのまま利用できる
-            _row_data = [d[offset+data_colnum] if not np.isnan(d[offset+data_colnum]) else d[offset+data_colnum-1] for d in subject_dict[day]]
+        if not isalignment: #通常(FB有りも出力)
+            for day in days:
+                #セッションは既に変換時ソート済みなのでそのまま利用できる
+                _row_data = [d[offset+data_colnum] if not np.isnan(d[offset+data_colnum]) else d[offset+data_colnum-1] for d in subject_dict[day]]
+                row_data = []
+                for i in range(0,6,2):
+                    row_data.append(_row_data[i])
+                    row_data.append(_row_data[i+1])
+                    row_data.append(np.mean([_row_data[i],_row_data[i+1]]))
+                    row_data.append("")
+                new_data.append([subject,day]+row_data)
+        else:
             row_data = []
-            for i in range(0,6,2):
-                row_data.append(_row_data[i])
-                row_data.append(_row_data[i+1])
-                row_data.append(np.mean([_row_data[i],_row_data[i+1]]))
-                row_data.append("")
-            new_data.append([subject,day]+row_data)
+            for day in days:
+                #セッションは既に変換時ソート済みなのでそのまま利用できる
+                _row_data = [d[offset+data_colnum] if not np.isnan(d[offset+data_colnum]) else d[offset+data_colnum-1] for d in subject_dict[day]]
+                for i in [0,4]:
+                    row_data.append(np.mean([_row_data[i],_row_data[i+1]]))
+            new_data.append([subject]+row_data)
     df = pd.DataFrame(new_data, columns =headers)
     return df
 
