@@ -36,8 +36,9 @@ def moving_variance(signal, N):
         variances[i] = np.var(window)  # ウィンドウ内の分散を計算
     return variances
     
-
+day_erders = []
 for day in range(1,5):
+    session_erders = []
     for fb in ["s1","s4"]:
         with open('./eval/settings.json') as f:
             settings = json.load(f)
@@ -122,7 +123,9 @@ for day in range(1,5):
         print(len(stims_left),len(stims_right))
 
         plt.figure(figsize=(10, 7))
+        ch_erders = []
         for ch,ch_name in enumerate(["C3","Cz","C4"]):
+            lr_erders = []
             for label,_stims,_baselines in zip(["left","right"],[stims_left,stims_right],[baselines_left,baselines_right]):
                 erders = []
                 for stim,baseline in zip(_stims,_baselines):
@@ -137,24 +140,45 @@ for day in range(1,5):
                         print(ch,np.max(e))
                 erders = np.array(erders)
                 erders = np.mean(erders,axis=0)
+                lr_erders.append(np.mean(erders))
                 # Time vector for STFT
                 time_stft = np.linspace(0, T, len(erders), endpoint=False)
-
-
                 plt.subplot(3, 1, ch+1)
                 plt.title(ch_name)
                 #plt.plot(time_stft, baseline_avg, label="Baseline")
                 #for e in erders:
                 #    time_stft = np.linspace(0, T, len(e), endpoint=False) #TODO: 後で消す
                 #    plt.plot(time_stft, e *100, label=label)
-                plt.plot(time_stft, erders *100, label=label)
+                plt.plot(time_stft, erders *100, label=label,color= "r" if "left" == label else "c")
+                plt.plot(time_stft,[np.mean(erders)*100]*len(time_stft),linestyle = "dashed",color= "r" if "left" == label else "c")
                 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
                 plt.xlabel("Time [s]")
                 plt.ylabel("ERD/ERS")
                 plt.ylim(-200,200)
+            ch_erders.append(lr_erders)
+        session_erders.append(ch_erders)
         plt.suptitle(f"subject {subject} : day{day}/FBX {'First' if fb == 's1' else 'END'}")
         plt.show()
+    day_erders.append(session_erders)
 
 # %%
-time_stft.shape
+day_erders = np.array(day_erders)
+np.save("test.npy",day_erders)
+day_erders.shape #日,セッション,ch,lr
+# %%
+for day in range(day_erders.shape[0]):
+    for session in range(day_erders.shape[1]):
+        print(day+1,session+1)
+        c3=0
+        c4=0
+        for ch in range(day_erders.shape[2]):
+            ch_data = day_erders[day,session,ch,:]
+            if ch == 0:
+                c3 = ch_data[1]-ch_data[0]
+                print(ch,c3)
+            elif ch == 2:
+                c4 = ch_data[0]-ch_data[1]
+                print(ch,c4)
+        print(np.mean([c3,c4]))
+
 # %%
