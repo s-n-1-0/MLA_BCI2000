@@ -3,5 +3,9 @@
     "h5_path":"C:/test/test.h5",
     "day":"0",
     "subjects":["0000"],
-    "run_all":false
+    "run_all":false,
+    "to_excel":{
+        "relative_source_dir":"/evals/_output_acc_detailed.csv",
+        "metric_name":"detailed_acc"
+    }
 }

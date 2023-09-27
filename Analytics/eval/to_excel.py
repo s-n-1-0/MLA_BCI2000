@@ -8,11 +8,12 @@ import numpy as np
 with open('settings.json') as f:
     settings = json.load(f)
     dataset_dir = settings['dataset_dir']
+    toe_settings = settings["to_excel"]
 file_keys = ["s1m1","s1m2","s2","s3","s4m1","s4m2"]
 isalignment = True #FB有りを除いて整列 
 # %%
-acc_output_path = dataset_dir + "/evals/_output_acc.csv"
-acc_data = pd.read_csv(acc_output_path,header=None).values
+source_path = dataset_dir + toe_settings["relative_source_dir"]
+acc_data = pd.read_csv(source_path,header=None).values
 
 #
 # 変換される辞書は
@@ -90,7 +91,8 @@ acc_realtime_df = make_df(heads_headers+tails_headers,acc_dict,1)#fixed
 acc_d1_df = make_df(heads_headers+tails_headers,acc_dict,2 if acc_data.shape[1] == 6 else 3)
         
 # %% Excelに保存
-with pd.ExcelWriter(dataset_dir+"/evals/results.xlsx") as writer:
-        acc_realtime_df.to_excel(writer, sheet_name="fixed acc d2(Real Time)",index=False)
-        acc_d1_df.to_excel(writer, sheet_name="fixed acc d1",index=False)
+metric_name = toe_settings["metric_name"]
+with pd.ExcelWriter(f"{dataset_dir}/evals/{metric_name}_results.xlsx") as writer:
+        acc_realtime_df.to_excel(writer, sheet_name=f"fixed {metric_name} d2",index=False)
+        acc_d1_df.to_excel(writer, sheet_name=f"fixed {metric_name} d1",index=False)
 # %%
