@@ -9,7 +9,6 @@ import numpy as np
 from scipy.signal import filtfilt
 from typing import Callable
 fs = 500
-subject =13
 # %%
 
 eeglist = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'FC5', 'FC1', 'FC2', 'FC6', 'T7', 'C3', 'Cz', 'C4', 'T8', 'TP9', 'CP5', 'CP1', 'CP2', 'CP6', 'TP10', 'P7', 'P3', 'Pz', 'P4', 'P8', 'PO9', 'O1', 'Oz', 'O2', 'PO10', 'FC3', 'FC4', 'C5', 'C1', 'C2', 'C6', 'CP3', 'CPz', 'CP4', 'P1', 'P2', 'POz', 'FT9', 'FTT9h', 'TTP7h', 'TP7', 'TPP9h', 'FT10', 'FTT10h', 'TPP8h', 'TP8', 'TPP10h', 'F9', 'F10', 'AF7', 'AF3', 'AF4', 'AF8', 'PO3', 'PO4']
@@ -123,52 +122,60 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool],isplot = False):
                 plt.ylim(-200,200)
         ch_erders.append(lr_erders)
     return ch_erders
-day_erders = []
-for day in range(1,5):
-    session_erders = []
-    for fb in ["s1","s4"]:
-        def dataset_filter(dataset:h5py.Dataset):
-            attrs = dataset.attrs
-            ret = True
-            if fb not in attrs["mla_key"]:
-                ret = False
-            #フィルター
-            #"""
-            if attrs["subject"] != subject:
-                ret = False
-            #"""
-            if f"d{day}" not in attrs["mla_key"]:
-                ret = False
-            if attrs["stim_index"]-500 < 0:
-                ret = False
-            return ret
-        erders = get_erders(dataset_filter,isplot=True)
-        session_erders.append(erders)
-        plt.suptitle(f"subject {subject} : day{day}/FBX {'First' if fb == 's1' else 'END'}")
-        plt.show()
-    day_erders.append(session_erders)
-
+subject_erders = []
+for subject in range(1,18):
+    day_erders = []
+    for day in range(1,5):
+        session_erders = []
+        for fb in ["s1","s4"]:
+            def dataset_filter(dataset:h5py.Dataset):
+                attrs = dataset.attrs
+                ret = True
+                if fb not in attrs["mla_key"]:
+                    ret = False
+                #フィルター
+                #"""
+                if attrs["subject"] != subject:
+                    ret = False
+                #"""
+                if f"d{day}" not in attrs["mla_key"]:
+                    ret = False
+                if attrs["stim_index"]-500 < 0:
+                    ret = False
+                return ret
+            erders = get_erders(dataset_filter)
+            session_erders.append(erders)
+            plt.suptitle(f"subject {subject} : day{day}/FBX {'First' if fb == 's1' else 'END'}")
+            plt.show()
+        day_erders.append(session_erders)
+    subject_erders.append(day_erders)
 # %%
-day_erders = np.array(day_erders)
-np.save("test.npy",day_erders)
-day_erders.shape #日,セッション,ch,lr
+subject_erders = np.array(subject_erders)
+np.save("erders.npy",subject_erders)
+subject_erders.shape #日,セッション,ch,lr
 # %%
-for day in range(day_erders.shape[0]):
-    for session in range(day_erders.shape[1]):
-        print(day+1,session+1)
-        c3=0
-        c4=0
-        for ch in range(day_erders.shape[2]):
-            ch_data = day_erders[day,session,ch,:]
-            if ch == 0:
-                c3 = ch_data[1]-ch_data[0]
-                print(ch,c3)
-            elif ch == 2:
-                c4 = ch_data[0]-ch_data[1]
-                print(ch,c4)
-        if c3 > 0 or c4 > 0 or np.abs(c3) > 2 or np.abs(c4) > 2:
-            print("除外")
-        else:
-            print("通過")
-
-# %%
+stests = []
+for subject in range(subject_erders.shape[0]):
+    day_erders = subject_erders[subject]
+    stests.append(0)
+    print(f"{subject +1}人目")
+    for day in range(day_erders.shape[0]):
+        for session in range(day_erders.shape[1]):
+            print(day+1,session+1)
+            c3=0
+            c4=0
+            for ch in range(day_erders.shape[2]):
+                ch_data = day_erders[day,session,ch,:]
+                if ch == 0:
+                    c3 = ch_data[1]-ch_data[0]
+                    print(ch,c3)
+                elif ch == 2:
+                    c4 = ch_data[0]-ch_data[1]
+                    print(ch,c4)
+            if c3 > 0 or c4 > 0 or np.abs(c3) > 2 or np.abs(c4) > 2:
+                print("除外")
+                stests[subject] += 1
+            else:
+                print("通過")
+    print("")
+print(stests)
