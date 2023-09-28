@@ -4,10 +4,6 @@ from sklearn.preprocessing import StandardScaler
 from scipy.signal import butter, filtfilt
 from train_code.generator.raw_generator import transpose_raw2d
 import keras
-import os
-import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath('__file__')), '..'))
-from npy2trials import load_data
 #TODO: この二つの関数は冗長
 def preprocess(data,fs):
     #print(f"{scaler.mean_} / {scaler.scale_}")
@@ -42,5 +38,68 @@ def predict(model_path:str,loaded_data:np.ndarray,fs:int,ch_size:int,block_size:
     for i in range(all_data.shape[0]):
         predictclass_list.append(eval_sequence(all_data[i,:,:],fs,block_size,step,transpose_raw2d,d1_model))
     return predictclass_list
+
+# %% #任意のモデルで結果を出力
+# TODO: 要整理
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.append(os.path.join(os.path.dirname(os.path.abspath('__file__')), '..'))
+    from npy2trials import load_data
+    import glob
+    import os
+    import json
+    import csv
+    from analyse1 import analyse1
+    model_path = "C:/Users/gomar/Dropbox/輸送/models/dec1/model-85.h5"
+    fs = 500
+    ch_size = 13
+    block_size = 750
+    step = 250
+    with open('settings.json') as f:
+        settings = json.load(f)
+        dataset_dir = settings['dataset_dir']
+    def write_metrics(subject,day):
+        subject_day_dir = f"{settings['dataset_dir']}/{subject}/{day}"
+        file_paths = [f for f in glob.glob(subject_day_dir + "/*") if f.endswith(".npy") ]
+        file_names = [os.path.split(f)[1][:-4] for f in file_paths]
+        
+        for data_path,name in zip(file_paths,file_names):
+            name = name.replace("_concatenate","")
+            eval_dir = f"{settings['dataset_dir']}/evals/test_model/"
+            if not os.path.exists(eval_dir):
+                os.makedirs(eval_dir)
+            x = np.load(data_path)
+            stim_data,_,trueclasses = load_data(x,fs)
+            predictclass_list= predict(model_path,stim_data,fs,ch_size,block_size,step)
+            data_metrics,data_detailed_metrics,_ = analyse1(trueclasses,predictclass_list)
+            for d0,apname in zip([data_metrics,data_detailed_metrics],
+                            ["","_detailed"]):
+                log_path = eval_dir + "output_acc" + apname + ".csv"
+                with open(log_path, 'a') as f:
+                    writer = csv.writer(f, lineterminator='\n') # 行末は改行
+                    nlst = data_path.replace("C:/MLA_Saves_Bk/","").replace("\\","/").split("/")
+                    cols = [nlst[0],nlst[1],nlst[2]]
+                    cols += [d0[0][0],d0[1][0]] ##accだけ追加
+                    writer.writerow(cols)
+                    
+            for d0,apname in zip([data_metrics,data_detailed_metrics],
+                            ["","_detailed"]):
+                log_path = eval_dir + "output_ex" + apname + ".csv"
+                with open(log_path, 'a') as f:
+                    writer = csv.writer(f, lineterminator='\n') # 行末は改行
+                    nlst = data_path.replace("C:/MLA_Saves_Bk/","").replace("\\","/").split("/")
+                    cols = [nlst[0],nlst[1],nlst[2]]
+                    for i in range(1,3):
+                        cols += [d0[0][i],d0[1][i]]#つまり通常とfixed
+                        cols += ["/"] #評価関数が変わったら / 列挿入
+                    writer.writerow(cols)
+    subjects = [f for f in os.listdir(dataset_dir) if os.path.isdir(os.path.join(dataset_dir, f))]
+    for s in subjects:
+        #ignore
+        if s in ["0000","1000","1001","1002"]:continue
+        days = [f for f in os.listdir(dataset_dir+"/"+s) if os.path.isdir(os.path.join(dataset_dir+"/"+s, f))]
+        for d in days:
+            write_metrics(s,d)
 
 # %%
