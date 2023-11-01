@@ -51,34 +51,45 @@ if __name__ == "__main__":
     import json
     import csv
     from analyse1 import analyse1
-    model_path = "C:/Users/gomar/Dropbox/輸送/models/dec1/model-85.h5"
+    
+    """
+    オプション
+    """
+    model_path = ""
+    session_name = "s1"
     fs = 500
     ch_size = 13
     block_size = 750
     step = 250
+
+
     with open('settings.json') as f:
         settings = json.load(f)
         dataset_dir = settings['dataset_dir']
+    target_dir = f"{dataset_dir}/{session_name}"
     def write_metrics(subject,day):
-        subject_day_dir = f"{settings['dataset_dir']}/{subject}/{day}"
+        subject_day_dir = f"{target_dir}/{subject}/{day}"
         file_paths = [f for f in glob.glob(subject_day_dir + "/*") if f.endswith(".npy") ]
         file_names = [os.path.split(f)[1][:-4] for f in file_paths]
         
         for data_path,name in zip(file_paths,file_names):
             name = name.replace("_concatenate","")
-            eval_dir = f"{settings['dataset_dir']}/evals/test_model/"
+            eval_dir = f"{dataset_dir}/evals/test_model/"
             if not os.path.exists(eval_dir):
                 os.makedirs(eval_dir)
             x = np.load(data_path)
-            stim_data,_,trueclasses = load_data(x,fs)
-            predictclass_list= predict(model_path,stim_data,fs,ch_size,block_size,step)
+            stim_data,predictclass_list,trueclasses = load_data(x,fs)
+            if model_path != "":
+                predictclass_list = predict(model_path,stim_data,fs,ch_size,block_size,step)
+            else:
+                print("モデルパスが未指定のためデータに保存されている予測値を使用。")
             data_metrics,data_detailed_metrics,_ = analyse1(trueclasses,predictclass_list)
             for d0,apname in zip([data_metrics,data_detailed_metrics],
                             ["","_detailed"]):
                 log_path = eval_dir + "output_acc" + apname + ".csv"
                 with open(log_path, 'a') as f:
                     writer = csv.writer(f, lineterminator='\n') # 行末は改行
-                    nlst = data_path.replace("C:/MLA_Saves_Bk/","").replace("\\","/").split("/")
+                    nlst = data_path.replace(target_dir+"/","").replace("\\","/").split("/")
                     cols = [nlst[0],nlst[1],nlst[2]]
                     cols += [d0[0][0],d0[1][0]] ##accだけ追加
                     writer.writerow(cols)
@@ -88,17 +99,17 @@ if __name__ == "__main__":
                 log_path = eval_dir + "output_ex" + apname + ".csv"
                 with open(log_path, 'a') as f:
                     writer = csv.writer(f, lineterminator='\n') # 行末は改行
-                    nlst = data_path.replace("C:/MLA_Saves_Bk/","").replace("\\","/").split("/")
+                    nlst = data_path.replace(target_dir+"/","").replace("\\","/").split("/")
                     cols = [nlst[0],nlst[1],nlst[2]]
                     for i in range(1,3):
                         cols += [d0[0][i],d0[1][i]]#つまり通常とfixed
                         cols += ["/"] #評価関数が変わったら / 列挿入
                     writer.writerow(cols)
-    subjects = [f for f in os.listdir(dataset_dir) if os.path.isdir(os.path.join(dataset_dir, f))]
+    subjects = [f for f in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, f))]
     for s in subjects:
         #ignore
         if s in ["0000","1000","1001","1002"]:continue
-        days = [f for f in os.listdir(dataset_dir+"/"+s) if os.path.isdir(os.path.join(dataset_dir+"/"+s, f))]
+        days = [f for f in os.listdir(target_dir+"/"+s) if os.path.isdir(os.path.join(target_dir+"/"+s, f))]
         for d in days:
             write_metrics(s,d)
 
