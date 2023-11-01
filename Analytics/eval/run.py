@@ -18,7 +18,7 @@ def generate_notebook(subject,day):
         if not os.path.exists(eval_dir):
             os.makedirs(eval_dir)
         pm.execute_notebook(
-        "eval.ipynb",
+        "eval_template.ipynb",
         f"{eval_dir}/{name}.ipynb",
         parameters=dict(data_path=data_path,
                         d1_model_path=d1_model_path,
