@@ -11,7 +11,9 @@ with open('settings.json') as f:
     toe_settings = settings["tally_to_excel"]
 
     source_file = toe_settings["source_file"]
+    target_file_name = toe_settings["target_file_name"]
     target_indexes = toe_settings["target_indexes"]
+    target_sheet_names = toe_settings["target_sheet_names"]
 
 file_keys = ["s1m1","s1m2","s2","s3","s4m1","s4m2"]
 isalignment = True #FB有りを除いて整列 
@@ -104,9 +106,8 @@ for df in df_list:
     line_df_list.append(pd.DataFrame(new_data,columns=None))
 
 # %% Excelに保存
-metric_name = toe_settings["metric_name"]
-with pd.ExcelWriter(f"{dataset_dir}/evals/{metric_name}_results.xlsx") as writer:
-        for df,lf,ti in zip(df_list,line_df_list,target_indexes):
-            df.to_excel(writer, sheet_name=f"{metric_name} col{ti}",index=False)
-            lf.to_excel(writer, sheet_name=f"{metric_name} col{ti}_line",index=False,header=False)
+with pd.ExcelWriter(f"{dataset_dir}/evals/{target_file_name}_results.xlsx") as writer:
+        for sheet_name,df,lf,ti in zip(target_sheet_names,df_list,line_df_list,target_indexes):
+            df.to_excel(writer, sheet_name=f"{sheet_name} col{ti}",index=False)
+            lf.to_excel(writer, sheet_name=f"{sheet_name} col{ti}_line",index=False,header=False)
 # %%

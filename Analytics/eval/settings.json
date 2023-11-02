@@ -1,13 +1,14 @@
 {
     "dataset_dir":"C:/MLA_Saves_Bk",
-    "h5_path":"C:/test/test.h5",
-    "day":"0",
-    "subjects":["0000"],
+    "h5_path":"//172.16.88.200/private/2221012/mla.h5",
+    "subjects":["3","15"],
+    "day":"1",
     "run_all":false,
     "tally_to_excel":{
         "relative_source_dir":"/evals/test_model",
-        "source_file":"_output_acc_detailed.csv",
-        "metric_name":"t3s3",
-        "target_indexes":[0]
+        "source_file":"_output_ex_detailed.csv",
+        "target_file_name":"ex_d2",
+        "target_sheet_names":["recall","spec"],
+        "target_indexes":[0,3]
     }
 }
