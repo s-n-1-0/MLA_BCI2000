@@ -8,11 +8,15 @@ import numpy as np
 with open('settings.json') as f:
     settings = json.load(f)
     dataset_dir = settings['dataset_dir']
-    toe_settings = settings["to_excel"]
+    toe_settings = settings["tally_to_excel"]
+
+    source_file = toe_settings["source_file"]
+    target_indexes = toe_settings["target_indexes"]
+
 file_keys = ["s1m1","s1m2","s2","s3","s4m1","s4m2"]
 isalignment = True #FB有りを除いて整列 
 # %%
-source_path = dataset_dir + toe_settings["relative_source_dir"]
+source_path = dataset_dir + toe_settings["relative_source_dir"] + "/" + source_file
 acc_data = pd.read_csv(source_path,header=None).values
 
 #
@@ -80,19 +84,29 @@ def make_df(headers:list,d,data_colnum,offset = 2):
             row_data = []
             for day in days:
                 #セッションは既に変換時ソート済みなのでそのまま利用できる
-                _row_data = [d[offset+data_colnum] if not np.isnan(d[offset+data_colnum]) else d[offset+data_colnum-1] for d in subject_dict[day]]
+                _row_data = [d[offset+data_colnum] if not np.isnan(d[offset+data_colnum]) or data_colnum == 0 else d[offset+data_colnum-1] for d in subject_dict[day]]
                 for i in [0,4]:
                     row_data.append(np.mean([_row_data[i],_row_data[i+1]]))
             new_data.append([subject]+row_data)
     df = pd.DataFrame(new_data, columns =headers)
     return df
 
-acc_realtime_df = make_df(heads_headers+tails_headers,acc_dict,1)#fixed
-acc_d1_df = make_df(heads_headers+tails_headers,acc_dict,2 if acc_data.shape[1] == 6 else 3)
-        
+df_list = [ make_df(heads_headers+tails_headers,acc_dict,i) for i in target_indexes]#if acc_data.shape[1] == 6 else 3)
+
+# %%一列目をヘッダー、2列目を値にしたDataFrameを作成
+line_df_list = [] #一列目をヘッダー、2列目を値にした行列のリスト(被験者番号は情報欠損する)
+for df in df_list:
+    new_data = []
+    for column in df.columns:
+        if column in heads_headers: #基本ヘッダーの場合はスキップ
+            continue
+        new_data +=  [[column,value] for value in (df[column].values)]
+    line_df_list.append(pd.DataFrame(new_data,columns=None))
+
 # %% Excelに保存
 metric_name = toe_settings["metric_name"]
 with pd.ExcelWriter(f"{dataset_dir}/evals/{metric_name}_results.xlsx") as writer:
-        acc_realtime_df.to_excel(writer, sheet_name=f"fixed {metric_name} d2",index=False)
-        acc_d1_df.to_excel(writer, sheet_name=f"fixed {metric_name} d1",index=False)
+        for df,lf,ti in zip(df_list,line_df_list,target_indexes):
+            df.to_excel(writer, sheet_name=f"{metric_name} col{ti}",index=False)
+            lf.to_excel(writer, sheet_name=f"{metric_name} col{ti}_line",index=False,header=False)
 # %%

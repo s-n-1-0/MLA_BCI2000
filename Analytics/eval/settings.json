@@ -4,8 +4,10 @@
     "day":"0",
     "subjects":["0000"],
     "run_all":false,
-    "to_excel":{
-        "relative_source_dir":"/evals/_output_acc_detailed.csv",
-        "metric_name":"detailed_acc"
+    "tally_to_excel":{
+        "relative_source_dir":"/evals/test_model",
+        "source_file":"_output_acc_detailed.csv",
+        "metric_name":"t3s3",
+        "target_indexes":[0]
     }
 }
