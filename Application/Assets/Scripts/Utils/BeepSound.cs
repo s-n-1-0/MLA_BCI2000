@@ -8,12 +8,13 @@ public class BeepSound : MonoBehaviour
     public int startingPitch = 4;
     public int timeToDecrease = 5;
     AudioSource audioSource;
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
 
     public void Beep()
     {
-        //Fetch the AudioSource from the GameObject
-        audioSource = GetComponent<AudioSource>();
-
         //Initialize the pitch
         audioSource.pitch = startingPitch;
         audioSource.Play();
