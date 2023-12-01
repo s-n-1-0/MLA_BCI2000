@@ -1,30 +1,47 @@
 #
 # ERD/ERSを出力するコード(要調整・要整理)
+# 
+# データ除外条件
+#   - MLA以外のデータは除去
+#   - 抽出データのstim時間が1秒未満のものは除去
+# プロット条件
+#   + 日ごとに出力
+#       + FB無1またはFB無4を対象に分析
+#   + 
 #
 # %%
 import h5py
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import filtfilt
+from scipy.signal import filtfilt,butter, lfilter
 from typing import Callable
 fs = 500
 # %%
 
+"""
+3Pデータセットの場合
 eeglist = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'FC5', 'FC1', 'FC2', 'FC6', 'T7', 'C3', 'Cz', 'C4', 'T8', 'TP9', 'CP5', 'CP1', 'CP2', 'CP6', 'TP10', 'P7', 'P3', 'Pz', 'P4', 'P8', 'PO9', 'O1', 'Oz', 'O2', 'PO10', 'FC3', 'FC4', 'C5', 'C1', 'C2', 'C6', 'CP3', 'CPz', 'CP4', 'P1', 'P2', 'POz', 'FT9', 'FTT9h', 'TTP7h', 'TP7', 'TPP9h', 'FT10', 'FTT10h', 'TPP8h', 'TP8', 'TPP10h', 'F9', 'F10', 'AF7', 'AF3', 'AF4', 'AF8', 'PO3', 'PO4']
 using_lst = ['FC5','FC1','FC2','FC6','C3','C1','Cz','C2','C4','CP5','CP1','CP2','CP6']
 using_lst = ['C3','Cz','C4']
 ch_indexes = []
 for item in using_lst:
     ch_indexes.append(eeglist.index(item))
+"""
 ch_indexes = [4,6,8] #NOTE:MLA.h5用
+
+isplot = True #プロット表示するかどうか
 len(ch_indexes),ch_indexes
 
-with open('./eval/settings.json') as f:
+with open('./settings.json') as f:
     settings = json.load(f)
     h5_path = settings["h5_path"]
 # %%
+
 def get_trials(dataset_filter:Callable[[h5py.Dataset],bool]):
+    """
+    指定した条件を満たす試行のラベルと表示区間(stims)と待機区間(baselines)のデータを返す
+    """
     with h5py.File(h5_path) as h5:
         count = h5["origin"].attrs["count"]
         labels = []
@@ -33,9 +50,8 @@ def get_trials(dataset_filter:Callable[[h5py.Dataset],bool]):
         for i in range(count):
             dataset = h5[f"origin/{i}"]
             attrs = dataset.attrs
-            stim_start = 1000
             stim_start = attrs["stim_index"]
-            if not dataset_filter(dataset):
+            if not dataset_filter(dataset): #分析対象じゃなかったら飛ばす
                 continue
             labels.append(attrs["label"])
             data = []
@@ -47,20 +63,27 @@ def get_trials(dataset_filter:Callable[[h5py.Dataset],bool]):
                 x = d[i,:] - filtfilt(b, a, d[i,:]) #移動平均フィルタ
                 data.append(x)
             data = np.array(data)#StandardScaler().fit_transform(np.array(data).T).T + 750
-            baselines.append(data[ch_indexes,stim_start-400:stim_start])
-            assert stim_start-400 >= 0,stim_start
+            baselines.append(data[ch_indexes,stim_start-550:stim_start])
+            assert stim_start-550 >= 0,stim_start
             stims.append(data[ch_indexes,stim_start:])
     return labels,stims,baselines
 def stft(x, fftsize=1024, overlap=4):
     hop = fftsize // overlap
     w = np.hanning(fftsize)
     return np.array([np.fft.fft(w*(x[i:i+fftsize])) for i in range(0, len(x) - fftsize, hop)])
+def bandpass_filter(data, lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    y = lfilter(b, a, data)
+    return y
 def stft_and_filt(_time,data):
     time = np.linspace(0, _time, int(_time*fs), endpoint=False)
     fftsize = 256
     res_data = []
     for ch in range(3):
-        ch_data =  data[ch,:len(time)]
+        ch_data = bandpass_filter(data[ch,:len(time)],8,30,fs) 
         # Compute STFT
         overlap = 4
         stft_data = np.abs(stft(ch_data, fftsize, overlap))**2
@@ -70,7 +93,7 @@ def stft_and_filt(_time,data):
         # Average over selected frequencies
         res_data.append(np.mean(stft_data[:, selected_freqs], axis=1))
     return np.array(res_data)
-def get_erders(dataset_filter:Callable[[h5py.Dataset],bool],isplot = False):
+def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
     T = 4  # Duration in seconds
     labels,stims,baselines = get_trials(dataset_filter)     
     # STFT function
@@ -79,7 +102,7 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool],isplot = False):
     stims_left = []
     stims_right = []
     for label,baseline,stim in zip(labels,baselines,stims):
-        stim = stim[:,:1950]
+        stim = stim[:,:1950] #厳密に4秒ではなくて右端の0.1秒は捨てる(調整用)
         if label == "left":
             stims_left.append(stim)
             baselines_left.append(baseline)
@@ -91,6 +114,7 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool],isplot = False):
     plt.figure(figsize=(10, 7))
     ch_erders = []
     for ch,ch_name in enumerate(["C3","Cz","C4"]):
+        print(f"=>{ch}")
         lr_erders = []
         for label,_stims,_baselines in zip(["left","right"],[stims_left,stims_right],[baselines_left,baselines_right]):
             erders = []
@@ -98,10 +122,11 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool],isplot = False):
                 stft_stim = stft_and_filt(T,stim)[ch,:]
                 stft_baseline = stft_and_filt(T,baseline)[ch,:]
                 b = np.mean(stft_baseline)
-                e = (stft_stim - b)/b
+                e = (stft_stim - b)/b #ERD/ERS式
                 #print(b)
-                if np.max(e) < 50:
+                if np.max(e) < 100: #ERSが100倍(10000%)になっているなら除外する
                     erders.append(e)
+            print(f"{label} : {len(erders)}")
             erders = np.array(erders)
             erders = np.mean(erders,axis=0)
             lr_erders.append(np.mean(erders))
@@ -114,40 +139,46 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool],isplot = False):
                 #for e in erders:
                 #    time_stft = np.linspace(0, T, len(e), endpoint=False) #TODO: 後で消す
                 #    plt.plot(time_stft, e *100, label=label)
-                plt.plot(time_stft, erders *100, label=label,color= "r" if "left" == label else "c")
-                plt.plot(time_stft,[np.mean(erders)*100]*len(time_stft),linestyle = "dashed",color= "r" if "left" == label else "c")
+                plt.plot(range(len(time_stft)), erders *100, label=label,color= "r" if "left" == label else "c")
+                plt.plot(range(len(time_stft)),[np.mean(erders)*100]*len(time_stft),linestyle = "dashed",color= "r" if "left" == label else "c")
+                plt.plot(range(len(time_stft)),[0]*len(time_stft),color="gray")
                 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
                 plt.xlabel("Time [s]")
                 plt.ylabel("ERD/ERS")
-                plt.ylim(-200,200)
+                plt.ylim(-150,150)
         ch_erders.append(lr_erders)
     return ch_erders
 subject_erders = []
 for subject in range(1,18):
     day_erders = []
-    for day in range(1,5):
-        session_erders = []
+    #for day in range(1,5):
+    session_erders = []
+    #for fb in ["s1","s4"]:
+    def dataset_filter(dataset:h5py.Dataset):
+        attrs = dataset.attrs
+        ret = True
         for fb in ["s1","s4"]:
-            def dataset_filter(dataset:h5py.Dataset):
-                attrs = dataset.attrs
+            if fb in attrs["mla_key"]:
                 ret = True
-                if fb not in attrs["mla_key"]:
-                    ret = False
-                #フィルター
-                #"""
-                if attrs["subject"] != subject:
-                    ret = False
-                #"""
-                if f"d{day}" not in attrs["mla_key"]:
-                    ret = False
-                if attrs["stim_index"]-500 < 0:
-                    ret = False
-                return ret
-            erders = get_erders(dataset_filter)
-            session_erders.append(erders)
-            plt.suptitle(f"subject {subject} : day{day}/FBX {'First' if fb == 's1' else 'END'}")
-            plt.show()
-        day_erders.append(session_erders)
+                break
+            else:    
+                ret = False
+        #フィルター
+        #"""
+        if attrs["subject"] != subject:
+            ret = False
+        #"""
+        #if f"d{day}" not in attrs["mla_key"]:
+        #    ret = False
+        if attrs["stim_index"]-550 < 0:
+            ret = False
+        return ret
+    erders = get_erders(dataset_filter)
+    session_erders.append(erders)
+    plt.suptitle(f"subject {subject} ")#: day{day}")#/FBNone {'First' if fb == 's1' else 'END'}")
+    plt.savefig(f"./figs/{subject}.png")
+    plt.show()
+    day_erders.append(session_erders)
     subject_erders.append(day_erders)
 # %%
 subject_erders = np.array(subject_erders)
