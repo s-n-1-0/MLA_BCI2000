@@ -15,7 +15,8 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import filtfilt,butter, lfilter
-from typing import Callable
+from typing import Callable, Dict
+from bci_dataset.hdf_controller import HDFController
 fs = 500
 # %%
 
@@ -31,13 +32,16 @@ for item in using_lst:
 ch_indexes = [4,6,8] #NOTE:MLA.h5用
 
 isplot = True #プロット表示するかどうか
+isfirst_baseline = False #開始時の待機時間をベースラインとするかどうか
 len(ch_indexes),ch_indexes
 
 with open('./settings.json') as f:
     settings = json.load(f)
     h5_path = settings["h5_path"]
-# %%
 
+# %%
+def make_first_dict_key(attrs:dict):
+    return str(attrs["subject"]) + "_" + str(attrs["session"]) + "_" + attrs["mla_key"]
 def get_trials(dataset_filter:Callable[[h5py.Dataset],bool]):
     """
     指定した条件を満たす試行のラベルと表示区間(stims)と待機区間(baselines)のデータを返す
@@ -47,12 +51,14 @@ def get_trials(dataset_filter:Callable[[h5py.Dataset],bool]):
         labels = []
         baselines = []
         stims = []
+        keys = []
         for i in range(count):
             dataset = h5[f"origin/{i}"]
             attrs = dataset.attrs
             stim_start = attrs["stim_index"]
             if not dataset_filter(dataset): #分析対象じゃなかったら飛ばす
                 continue
+            keys.append(make_first_dict_key(dataset.attrs))
             labels.append(attrs["label"])
             data = []
             d = dataset[()]
@@ -66,7 +72,7 @@ def get_trials(dataset_filter:Callable[[h5py.Dataset],bool]):
             baselines.append(data[ch_indexes,stim_start-550:stim_start])
             assert stim_start-550 >= 0,stim_start
             stims.append(data[ch_indexes,stim_start:])
-    return labels,stims,baselines
+    return labels,stims,baselines,keys
 def stft(x, fftsize=1024, overlap=4):
     hop = fftsize // overlap
     w = np.hanning(fftsize)
@@ -78,12 +84,11 @@ def bandpass_filter(data, lowcut, highcut, fs, order=5):
     b, a = butter(order, [low, high], btype='band')
     y = lfilter(b, a, data)
     return y
-def stft_and_filt(_time,data):
-    time = np.linspace(0, _time, int(_time*fs), endpoint=False)
+def stft_and_filt(timestamp_range:slice,data):
     fftsize = 256
     res_data = []
     for ch in range(3):
-        ch_data = bandpass_filter(data[ch,:len(time)],8,30,fs) 
+        ch_data = bandpass_filter(data[ch,timestamp_range],8,30,fs) 
         # Compute STFT
         overlap = 4
         stft_data = np.abs(stft(ch_data, fftsize, overlap))**2
@@ -93,22 +98,39 @@ def stft_and_filt(_time,data):
         # Average over selected frequencies
         res_data.append(np.mean(stft_data[:, selected_freqs], axis=1))
     return np.array(res_data)
+
+def get_first_fixs_erders():
+    first_dict:Dict[str,np.ndarray] = {}
+    for dataset in HDFController(h5_path).get_in_order("origin"):
+        si = dataset.attrs["stim_index"]
+        if  si > 5000:
+            dkey = make_first_dict_key(dataset.attrs)
+            first_dict[dkey] = dataset[()][ch_indexes,:si]
+    first_erders_dict = {}
+    for key in first_dict:
+        data = first_dict[key]
+        first_erders_dict[key] = [np.mean(stft_and_filt(slice(-fs*5,None),data)[i,:]) for i in range(3)]
+    return first_erders_dict
 def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
     T = 4  # Duration in seconds
-    labels,stims,baselines = get_trials(dataset_filter)     
+    labels,stims,baselines,keys = get_trials(dataset_filter)     
     # STFT function
     baselines_left = []
     baselines_right = []
     stims_left = []
     stims_right = []
-    for label,baseline,stim in zip(labels,baselines,stims):
+    key_left = []
+    key_right = []
+    for label,baseline,stim,key in zip(labels,baselines,stims,keys):
         stim = stim[:,:1950] #厳密に4秒ではなくて右端の0.1秒は捨てる(調整用)
         if label == "left":
             stims_left.append(stim)
             baselines_left.append(baseline)
+            key_left.append(key)
         else:
             stims_right.append(stim)
             baselines_right.append(baseline)
+            key_right.append(key)
     print(len(stims_left),len(stims_right))
 
     plt.figure(figsize=(10, 7))
@@ -116,12 +138,18 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
     for ch,ch_name in enumerate(["C3","Cz","C4"]):
         print(f"=>{ch}")
         lr_erders = []
-        for label,_stims,_baselines in zip(["left","right"],[stims_left,stims_right],[baselines_left,baselines_right]):
+        for label,_stims,_baselines,_keys in zip(["left","right"],
+                                           [stims_left,stims_right],
+                                           [baselines_left,baselines_right],
+                                           [key_left,key_right]):
             erders = []
-            for stim,baseline in zip(_stims,_baselines):
-                stft_stim = stft_and_filt(T,stim)[ch,:]
-                stft_baseline = stft_and_filt(T,baseline)[ch,:]
-                b = np.mean(stft_baseline)
+            for stim,baseline,key in zip(_stims,_baselines,_keys):
+                stft_stim = stft_and_filt(slice(0,T*fs),stim)[ch,:]
+                if isfirst_baseline:
+                    b = first_dict[key][ch]
+                else:
+                    stft_baseline = stft_and_filt(slice(-550,None),baseline)[ch,:]
+                    b = np.mean(stft_baseline)
                 e = (stft_stim - b)/b #ERD/ERS式
                 #print(b)
                 if np.max(e) < 100: #ERSが100倍(10000%)になっているなら除外する
@@ -148,6 +176,10 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
                 plt.ylim(-150,150)
         ch_erders.append(lr_erders)
     return ch_erders
+# %%
+first_dict = get_first_fixs_erders()
+
+# %%
 subject_erders = []
 for subject in range(1,18):
     day_erders = []
