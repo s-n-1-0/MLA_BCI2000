@@ -156,6 +156,7 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
                     erders.append(e)
             print(f"{label} : {len(erders)}")
             erders = np.array(erders)
+            std_erders = np.std(erders,axis=0)
             erders = np.mean(erders,axis=0)
             lr_erders.append(np.mean(erders))
             if isplot:
@@ -168,6 +169,8 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
                 #    time_stft = np.linspace(0, T, len(e), endpoint=False) #TODO: 後で消す
                 #    plt.plot(time_stft, e *100, label=label)
                 plt.plot(time_stft, erders *100, label=label,color= "r" if "left" == label else "c")
+                plt.plot(time_stft, std_erders *100, linestyle="dotted",color= "r" if "left" == label else "c")
+                plt.plot(time_stft, std_erders *-100, linestyle="dotted",color= "r" if "left" == label else "c")
                 plt.plot(time_stft,[np.mean(erders)*100]*len(time_stft),linestyle = "dashed",color= "r" if "left" == label else "c")
                 plt.plot(time_stft,[0]*len(time_stft),color="gray")
                 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
