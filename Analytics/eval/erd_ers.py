@@ -105,7 +105,16 @@ def get_first_fixs_erders():
         si = dataset.attrs["stim_index"]
         if  si > 5000:
             dkey = make_first_dict_key(dataset.attrs)
-            first_dict[dkey] = dataset[()][ch_indexes,:si]
+            d = dataset[()]
+            data = []
+            for i in range(d.shape[0]):
+                N = 100  # フィルタの窓サイズ
+                b = np.ones(N)/N
+                a = 1
+                x = d[i,:] - filtfilt(b, a, d[i,:]) #移動平均フィルタ
+                data.append(x)
+            data = np.array(data)
+            first_dict[dkey] = data[ch_indexes,:si]
     first_erders_dict = {}
     for key in first_dict:
         data = first_dict[key]
