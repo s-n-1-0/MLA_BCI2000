@@ -139,9 +139,9 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
                 #for e in erders:
                 #    time_stft = np.linspace(0, T, len(e), endpoint=False) #TODO: 後で消す
                 #    plt.plot(time_stft, e *100, label=label)
-                plt.plot(range(len(time_stft)), erders *100, label=label,color= "r" if "left" == label else "c")
-                plt.plot(range(len(time_stft)),[np.mean(erders)*100]*len(time_stft),linestyle = "dashed",color= "r" if "left" == label else "c")
-                plt.plot(range(len(time_stft)),[0]*len(time_stft),color="gray")
+                plt.plot(time_stft, erders *100, label=label,color= "r" if "left" == label else "c")
+                plt.plot(time_stft,[np.mean(erders)*100]*len(time_stft),linestyle = "dashed",color= "r" if "left" == label else "c")
+                plt.plot(time_stft,[0]*len(time_stft),color="gray")
                 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
                 plt.xlabel("Time [s]")
                 plt.ylabel("ERD/ERS")
