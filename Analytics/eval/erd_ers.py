@@ -17,6 +17,8 @@ import numpy as np
 from scipy.signal import filtfilt,butter, lfilter
 from typing import Callable, Dict
 from bci_dataset.hdf_controller import HDFController
+import io
+from PIL import Image
 fs = 500
 # %%
 
@@ -32,7 +34,7 @@ for item in using_lst:
 ch_indexes = [4,6,8] #NOTE:MLA.h5用
 
 isplot = True #プロット表示するかどうか
-isfirst_baseline = False #開始時の待機時間をベースラインとするかどうか
+isfirst_baseline = True #開始時の待機時間をベースラインとするかどうか
 len(ch_indexes),ch_indexes
 
 with open('./settings.json') as f:
@@ -40,6 +42,12 @@ with open('./settings.json') as f:
     h5_path = settings["h5_path"]
 
 # %%
+def fig_to_img(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    img = Image.open(buf)
+    return img
 def make_first_dict_key(attrs:dict):
     return str(attrs["subject"]) + "_" + str(attrs["session"]) + "_" + attrs["mla_key"]
 def get_trials(dataset_filter:Callable[[h5py.Dataset],bool]):
@@ -120,7 +128,23 @@ def get_first_fixs_erders():
         data = first_dict[key]
         first_erders_dict[key] = [np.mean(stft_and_filt(slice(-fs*5,None),data)[i,:]) for i in range(3)]
     return first_erders_dict
-def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
+def show_errorbar(left_erders,right_erders,left_err,right_err):
+    from matplotlib.transforms import ScaledTranslation
+    import matplotlib as mpl
+    mpl.rcParams['axes.xmargin'] = 0.1
+    x = ["C3","Cz","C4"]
+    fig = plt.figure(figsize=(4, 7))
+    ax = plt.subplot()
+    trans1 = ax.transData + ScaledTranslation(-5/72, 0, fig.dpi_scale_trans)
+    trans2 = ax.transData + ScaledTranslation(+5/72, 0, fig.dpi_scale_trans)
+    ax.errorbar(x, left_erders*100, yerr=left_err*100, marker="o",color="r", linestyle="none", transform=trans1)
+    ax.errorbar(x, right_erders*100, yerr=right_err*100, marker="o",color="c" ,linestyle="none", transform=trans2)
+    ax.set_ylim(-150,150)
+    img = fig_to_img(fig)
+    fig.suptitle(f"ERD/ERS")
+    plt.show()
+    return img
+def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
     T = 4  # Duration in seconds
     labels,stims,baselines,keys = get_trials(dataset_filter)     
     # STFT function
@@ -142,11 +166,13 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
             key_right.append(key)
     print(len(stims_left),len(stims_right))
 
-    plt.figure(figsize=(10, 7))
+    fig = plt.figure(figsize=(10, 7))
     ch_erders = []
+    ch_err = []
     for ch,ch_name in enumerate(["C3","Cz","C4"]):
         print(f"=>{ch}")
         lr_erders = []
+        lr_err = []
         for label,_stims,_baselines,_keys in zip(["left","right"],
                                            [stims_left,stims_right],
                                            [baselines_left,baselines_right],
@@ -168,6 +194,7 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
             std_erders = np.std(erders,axis=0)
             erders = np.mean(erders,axis=0)
             lr_erders.append(np.mean(erders))
+            lr_err.append(np.mean(std_erders))
             if isplot:
                 # Time vector for STFT
                 time_stft = np.linspace(0, T, len(erders), endpoint=False)
@@ -178,15 +205,29 @@ def get_erders(dataset_filter:Callable[[h5py.Dataset],bool]):
                 #    time_stft = np.linspace(0, T, len(e), endpoint=False) #TODO: 後で消す
                 #    plt.plot(time_stft, e *100, label=label)
                 plt.plot(time_stft, erders *100, label=label,color= "r" if "left" == label else "c")
-                plt.plot(time_stft, std_erders *100, linestyle="dotted",color= "r" if "left" == label else "c")
-                plt.plot(time_stft, std_erders *-100, linestyle="dotted",color= "r" if "left" == label else "c")
-                plt.plot(time_stft,[np.mean(erders)*100]*len(time_stft),linestyle = "dashed",color= "r" if "left" == label else "c")
+                plt.plot(time_stft, (erders + std_erders) *100, linestyle="dotted",color= "r" if "left" == label else "c")
+                plt.plot(time_stft, (erders - std_erders) *100, linestyle="dotted",color= "r" if "left" == label else "c")
                 plt.plot(time_stft,[0]*len(time_stft),color="gray")
                 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
                 plt.xlabel("Time [s]")
                 plt.ylabel("ERD/ERS")
                 plt.ylim(-150,150)
         ch_erders.append(lr_erders)
+        ch_err.append(lr_err)
+    plt.suptitle(f"subject {subject} ")#: day{day}")#/FBNone {'First' if fb == 's1' else 'END'}")
+    erders_img = fig_to_img(fig)
+    err_img = show_errorbar(np.array(ch_erders)[:,0],np.array(ch_erders)[:,1],np.array(ch_err)[:,0],np.array(ch_err)[:,1])
+    total_width = erders_img.width + err_img.width
+    max_height = max(erders_img.height, err_img.height)
+    new_img = Image.new('RGB', (total_width, max_height), (255, 255, 255))
+    new_img.paste(erders_img, (0, 0))
+    new_img.paste(err_img, (erders_img.width, 0))
+
+    # 結合した画像を保存または表示
+    #new_img.show()
+    erders_img.close()
+    err_img.close()
+    new_img.save(f"./figs/{subject}.png")
     return ch_erders
 # %%
 first_dict = get_first_fixs_erders()
@@ -217,11 +258,8 @@ for subject in range(1,18):
         if attrs["stim_index"]-550 < 0:
             ret = False
         return ret
-    erders = get_erders(dataset_filter)
+    erders = get_erders(subject,dataset_filter)
     session_erders.append(erders)
-    plt.suptitle(f"subject {subject} ")#: day{day}")#/FBNone {'First' if fb == 's1' else 'END'}")
-    plt.savefig(f"./figs/{subject}.png")
-    plt.show()
     day_erders.append(session_erders)
     subject_erders.append(day_erders)
 # %%
