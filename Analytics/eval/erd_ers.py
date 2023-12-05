@@ -77,8 +77,8 @@ def get_trials(dataset_filter:Callable[[h5py.Dataset],bool]):
                 x = d[i,:] - filtfilt(b, a, d[i,:]) #移動平均フィルタ
                 data.append(x)
             data = np.array(data)#StandardScaler().fit_transform(np.array(data).T).T + 750
-            baselines.append(data[ch_indexes,stim_start-550:stim_start])
-            assert stim_start-550 >= 0,stim_start
+            baselines.append(data[ch_indexes,stim_start-(1 if isfirst_baseline else 550):stim_start])
+            if not isfirst_baseline: assert stim_start-550 >= 0,stim_start
             stims.append(data[ch_indexes,stim_start:])
     return labels,stims,baselines,keys
 def stft(x, fftsize=1024, overlap=4):
@@ -169,10 +169,12 @@ def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
     fig = plt.figure(figsize=(10, 7))
     ch_erders = []
     ch_err = []
+    ignore_count_list = [] #ch×(lr,2)
     for ch,ch_name in enumerate(["C3","Cz","C4"]):
         print(f"=>{ch}")
         lr_erders = []
         lr_err = []
+        iglist = [0,0,0,0,0] #%スレッシュホールド
         for label,_stims,_baselines,_keys in zip(["left","right"],
                                            [stims_left,stims_right],
                                            [baselines_left,baselines_right],
@@ -187,14 +189,27 @@ def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
                     b = np.mean(stft_baseline)
                 e = (stft_stim - b)/b #ERD/ERS式
                 #print(b)
-                if np.max(e) < 100: #ERSが100倍(10000%)になっているなら除外する
+                max_erders = np.max(e)
+                if max_erders < 100: #ERSが100倍(10000%)になっているなら除外する
                     erders.append(e)
+                
+                if max_erders >= 100:
+                    iglist[-1] += 1
+                if max_erders >= 50:
+                    iglist[-2] += 1
+                if max_erders >= 20:
+                    iglist[-3] += 1
+                if max_erders >= 10:
+                    iglist[-4] += 1
+                if max_erders >= 1:
+                    iglist[-5] += 1
             print(f"{label} : {len(erders)}")
             erders = np.array(erders)
             std_erders = np.std(erders,axis=0)
             erders = np.mean(erders,axis=0)
             lr_erders.append(np.mean(erders))
             lr_err.append(np.mean(std_erders))
+            
             if isplot:
                 # Time vector for STFT
                 time_stft = np.linspace(0, T, len(erders), endpoint=False)
@@ -212,60 +227,67 @@ def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
                 plt.xlabel("Time [s]")
                 plt.ylabel("ERD/ERS")
                 plt.ylim(-150,150)
+        ignore_count_list.append(iglist)
         ch_erders.append(lr_erders)
         ch_err.append(lr_err)
-    plt.suptitle(f"subject {subject} ")#: day{day}")#/FBNone {'First' if fb == 's1' else 'END'}")
-    erders_img = fig_to_img(fig)
-    err_img = show_errorbar(np.array(ch_erders)[:,0],np.array(ch_erders)[:,1],np.array(ch_err)[:,0],np.array(ch_err)[:,1])
-    total_width = erders_img.width + err_img.width
-    max_height = max(erders_img.height, err_img.height)
-    new_img = Image.new('RGB', (total_width, max_height), (255, 255, 255))
-    new_img.paste(erders_img, (0, 0))
-    new_img.paste(err_img, (erders_img.width, 0))
+    if isplot:
+        plt.suptitle(f"subject {subject} ")#: day{day}")#/FBNone {'First' if fb == 's1' else 'END'}")
+        erders_img = fig_to_img(fig)
+        err_img = show_errorbar(np.array(ch_erders)[:,0],np.array(ch_erders)[:,1],np.array(ch_err)[:,0],np.array(ch_err)[:,1])
+        total_width = erders_img.width + err_img.width
+        max_height = max(erders_img.height, err_img.height)
+        new_img = Image.new('RGB', (total_width, max_height), (255, 255, 255))
+        new_img.paste(erders_img, (0, 0))
+        new_img.paste(err_img, (erders_img.width, 0))
 
-    # 結合した画像を保存または表示
-    #new_img.show()
-    erders_img.close()
-    err_img.close()
-    new_img.save(f"./figs/{subject}.png")
-    return ch_erders
+        # 結合した画像を保存または表示
+        #new_img.show()
+        erders_img.close()
+        err_img.close()
+        new_img.save(f"./figs/{subject}.png")
+    return ch_erders,ignore_count_list
 # %%
 first_dict = get_first_fixs_erders()
 
 # %%
 subject_erders = []
+subject_ignores = []
 for subject in range(1,18):
     day_erders = []
-    #for day in range(1,5):
-    session_erders = []
-    #for fb in ["s1","s4"]:
-    def dataset_filter(dataset:h5py.Dataset):
-        attrs = dataset.attrs
-        ret = True
+    day_ignores = []
+    print(subject)
+    for day in range(1,5):
+        session_erders = []
+        session_ignores = []
         for fb in ["s1","s4"]:
-            if fb in attrs["mla_key"]:
+            def dataset_filter(dataset:h5py.Dataset):
+                attrs = dataset.attrs
                 ret = True
-                break
-            else:    
-                ret = False
-        #フィルター
-        #"""
-        if attrs["subject"] != subject:
-            ret = False
-        #"""
-        #if f"d{day}" not in attrs["mla_key"]:
-        #    ret = False
-        if attrs["stim_index"]-550 < 0:
-            ret = False
-        return ret
-    erders = get_erders(subject,dataset_filter)
-    session_erders.append(erders)
-    day_erders.append(session_erders)
+                if fb not in attrs["mla_key"]:   
+                    ret = False
+                #フィルター
+                #"""
+                if attrs["subject"] != subject:
+                    ret = False
+                
+                if f"d{day}" not in attrs["mla_key"]:
+                    ret = False
+                if (not isfirst_baseline) and attrs["stim_index"]-550 < 0:
+                    ret = False
+                return ret
+            erders,ignore_list = get_erders(subject,dataset_filter)
+            session_erders.append(erders)
+            session_ignores.append(ignore_list)
+        day_erders.append(session_erders)
+        day_ignores.append(session_ignores)
     subject_erders.append(day_erders)
+    subject_ignores.append(day_ignores)
 # %%
 subject_erders = np.array(subject_erders)
+subject_ignores = np.array(subject_ignores)
 np.save("erders.npy",subject_erders)
-subject_erders.shape #日,セッション,ch,lr
+np.save("erders_ignores.npy",subject_ignores)
+subject_erders.shape,subject_ignores.shape #日,セッション,ch,lr
 # %%
 stests = []
 for subject in range(subject_erders.shape[0]):
