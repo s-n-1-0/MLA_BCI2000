@@ -33,9 +33,9 @@ for item in using_lst:
 """
 ch_indexes = [4,6,8] #NOTE:MLA.h5用
 
-isplot = True #プロット表示するかどうか
+isplot = False #プロット表示するかどうか
 isfirst_baseline = True #開始時の待機時間をベースラインとするかどうか
-iseach_day = False
+iseach_day = True
 len(ch_indexes),ch_indexes
 
 with open('./settings.json') as f:
@@ -311,35 +311,3 @@ for subject in range(1,18):
         day_ignores.append(session_ignores)
     subject_erders.append(day_erders)
     subject_ignores.append(day_ignores)
-# %%
-subject_erders = np.array(subject_erders)
-subject_ignores = np.array(subject_ignores)
-np.save("erders.npy",subject_erders)
-np.save("erders_ignores.npy",subject_ignores)
-subject_erders.shape,subject_ignores.shape #日,セッション,ch,lr
-# %%
-stests = []
-for subject in range(subject_erders.shape[0]):
-    day_erders = subject_erders[subject]
-    stests.append(0)
-    print(f"{subject +1}人目")
-    for day in range(day_erders.shape[0]):
-        for session in range(day_erders.shape[1]):
-            print(day+1,session+1)
-            c3=0
-            c4=0
-            for ch in range(day_erders.shape[2]):
-                ch_data = day_erders[day,session,ch,:]
-                if ch == 0:
-                    c3 = ch_data[1]-ch_data[0]
-                    print(ch,c3)
-                elif ch == 2:
-                    c4 = ch_data[0]-ch_data[1]
-                    print(ch,c4)
-            if c3 > 0 or c4 > 0 or np.abs(c3) > 2 or np.abs(c4) > 2:
-                print("除外")
-                stests[subject] += 1
-            else:
-                print("通過")
-    print("")
-print(stests)
