@@ -35,6 +35,7 @@ ch_indexes = [4,6,8] #NOTE:MLA.h5用
 
 isplot = True #プロット表示するかどうか
 isfirst_baseline = True #開始時の待機時間をベースラインとするかどうか
+iseach_day = False
 len(ch_indexes),ch_indexes
 
 with open('./settings.json') as f:
@@ -190,7 +191,7 @@ def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
                 e = (stft_stim - b)/b #ERD/ERS式
                 #print(b)
                 max_erders = np.max(e)
-                if max_erders < 100: #ERSが100倍(10000%)になっているなら除外する
+                if max_erders < 10: #ERSが10倍(1000%)になっているなら除外する
                     erders.append(e)
                 
                 if max_erders >= 100:
@@ -226,7 +227,7 @@ def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
                 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
                 plt.xlabel("Time [s]")
                 plt.ylabel("ERD/ERS")
-                plt.ylim(-150,150)
+                plt.ylim(-250,250)
         ignore_count_list.append(iglist)
         ch_erders.append(lr_erders)
         ch_err.append(lr_err)
@@ -256,28 +257,56 @@ for subject in range(1,18):
     day_erders = []
     day_ignores = []
     print(subject)
-    for day in range(1,5):
+    if iseach_day:
+        for day in range(1,5):
+            session_erders = []
+            session_ignores = []
+            for fb in ["s1","s4"]:
+                def dataset_filter(dataset:h5py.Dataset):
+                    attrs = dataset.attrs
+                    ret = True
+                    if fb not in attrs["mla_key"]:   
+                        ret = False
+                    #フィルター
+                    #"""
+                    if attrs["subject"] != subject:
+                        ret = False
+                    
+                    if f"d{day}" not in attrs["mla_key"]:
+                        ret = False
+                    if (not isfirst_baseline) and attrs["stim_index"]-550 < 0:
+                        ret = False
+                    return ret
+                erders,ignore_list = get_erders(subject,dataset_filter)
+                session_erders.append(erders)
+                session_ignores.append(ignore_list)
+            day_erders.append(session_erders)
+            day_ignores.append(session_ignores)
+    else:
         session_erders = []
         session_ignores = []
-        for fb in ["s1","s4"]:
-            def dataset_filter(dataset:h5py.Dataset):
-                attrs = dataset.attrs
-                ret = True
-                if fb not in attrs["mla_key"]:   
+        def dataset_filter(dataset:h5py.Dataset):
+            attrs = dataset.attrs
+            ret = True
+            for fb in ["s1","s4"]:
+                if fb in attrs["mla_key"]:   
+                    ret = True
+                    break
+                else:    
                     ret = False
-                #フィルター
-                #"""
-                if attrs["subject"] != subject:
-                    ret = False
-                
-                if f"d{day}" not in attrs["mla_key"]:
-                    ret = False
-                if (not isfirst_baseline) and attrs["stim_index"]-550 < 0:
-                    ret = False
-                return ret
-            erders,ignore_list = get_erders(subject,dataset_filter)
-            session_erders.append(erders)
-            session_ignores.append(ignore_list)
+            #フィルター
+            #"""
+            if attrs["subject"] != subject:
+                ret = False
+            
+            #if f"d{day}" not in attrs["mla_key"]:
+            #    ret = False
+            if (not isfirst_baseline) and attrs["stim_index"]-550 < 0:
+                ret = False
+            return ret
+        erders,ignore_list = get_erders(subject,dataset_filter)
+        session_erders.append(erders)
+        session_ignores.append(ignore_list)
         day_erders.append(session_erders)
         day_ignores.append(session_ignores)
     subject_erders.append(day_erders)
