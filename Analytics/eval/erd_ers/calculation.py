@@ -38,7 +38,7 @@ isfirst_baseline = True #開始時の待機時間をベースラインとする�
 iseach_day = True
 len(ch_indexes),ch_indexes
 
-with open('./settings.json') as f:
+with open('../settings.json') as f:
     settings = json.load(f)
     h5_path = settings["h5_path"]
 
@@ -208,8 +208,8 @@ def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
             erders = np.array(erders)
             std_erders = np.std(erders,axis=0)
             erders = np.mean(erders,axis=0)
-            lr_erders.append(np.mean(erders))
-            lr_err.append(np.mean(std_erders))
+            lr_erders.append(erders)
+            lr_err.append(std_erders)
             
             if isplot:
                 # Time vector for STFT
@@ -311,3 +311,8 @@ for subject in range(1,18):
         day_ignores.append(session_ignores)
     subject_erders.append(day_erders)
     subject_ignores.append(day_ignores)
+
+# %%
+np.save("erders.npy",np.array(subject_erders))
+np.save("erders_ignores.npy",np.array(subject_ignores))
+np.array(subject_erders).shape,np.array(subject_ignores).shape
