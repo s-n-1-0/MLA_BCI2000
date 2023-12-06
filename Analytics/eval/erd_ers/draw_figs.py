@@ -1,6 +1,7 @@
 # %%
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import io
 import os
 from PIL import Image
@@ -133,5 +134,37 @@ for subject in range(subject_diffs.shape[0]):
             ch_diffs = day_diffs[day,session,:,:]
             sems = np.std(ch_diffs,axis=1)/np.sqrt(ch_diffs.shape[1])
             plt.bar(["C3","Cz","C4"], np.mean(ch_diffs,axis=1), width=0.6, yerr=sems, capsize=10,color=["r","gray","c"])
-            plt.title(f"Subject {subject + 1} / Session{session + 1} (M+SEM)")
+            plt.ylim([-1,1])
+            plt.title(f"Subject {subject + 1} / Day{day+1} / Session{session + 1} (M+SEM)")
             plt.show()
+
+# %% ERD/ERS DIFF の集団プロット
+width = 0.25
+margin = 0.2
+block = width * subject_diffs.shape[0] + margin
+colors = list(mcolors.TABLEAU_COLORS.keys()) + \
+         list(mcolors.CSS4_COLORS.keys())[15:]#15番以降
+for day in range(subject_diffs.shape[1]):
+    for session in range(subject_diffs.shape[2]):
+        ind = np.arange(3) * block
+        plt.figure(figsize=(10, 7))
+        for subject in range(subject_diffs.shape[0]):
+            day_diffs = subject_diffs[subject]
+            ch_diffs = day_diffs[day,session,:,:]
+            sems = np.std(ch_diffs,axis=1)/np.sqrt(ch_diffs.shape[1])
+            plt.bar(
+                ind + width*subject,
+                np.mean(ch_diffs,axis=1),
+                width,
+                yerr=sems,
+                color=colors[subject],
+                label= f"{subject+1}"
+                )
+        plt.ylim([-1.25,1.25])
+        plt.title(f"Day {day + 1} / Session{session + 1} (M+SEM)")
+        xlabels = ["C3", "Cz", "C4"]
+        xlocs = ind + width * 17 / 2.
+        plt.xticks(xlocs, xlabels )
+        plt.xlim(-margin, ind[-1]+width*subject_diffs.shape[0]+margin)
+        plt.legend(prop={'size' : 18},loc='upper left', bbox_to_anchor=(1, 1))
+        plt.show()
