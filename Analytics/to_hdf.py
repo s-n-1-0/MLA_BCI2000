@@ -4,17 +4,17 @@ import os
 import json
 import numpy as np
 from npy2trials import load_data
-from eeghdf import EEGHDFUpdater
+from bci_dataset import DatasetUpdater
 import matplotlib.pyplot as plt
 fs = 500
 with open('./eval/settings.json') as f:
     settings = json.load(f)
     dataset_dir = settings['dataset_dir']
     h5_path = settings["h5_path"]
-updater = EEGHDFUpdater(h5_path,fs,lables=["left","right"])
+updater = DatasetUpdater(h5_path,fs)
 updater.remove_hdf()
 def build_hdf(subject,day):
-    subject_day_dir = f"{settings['dataset_dir']}/{subject}/{day}"
+    subject_day_dir = f"{settings['dataset_dir']}/s1/{subject}/{day}"
     file_paths = [f for f in glob.glob(subject_day_dir + "/*") if f.endswith(".npy") ]
     file_names = [os.path.split(f)[1][:-4] for f in file_paths]
     for data_path,name in zip(file_paths,file_names):
