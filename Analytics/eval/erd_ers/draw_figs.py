@@ -1,3 +1,6 @@
+#
+# NOTE: セッション合算のグラフ
+#
 # %%
 import numpy as np
 import matplotlib.pyplot as plt
@@ -102,13 +105,16 @@ for subject in range(subject_erders.shape[0]):
             new_img.save(f"{dir_path}/{day+1}_{session+1}.png")
 # %% ERD/ERS DIFF
 subject_diffs = []
+subject_diffdiffs = []
 for subject in range(subject_erders.shape[0]):
     day_erders = subject_erders[subject]
     day_trials = subject_trials[subject]
     print(f"{subject +1}人目")
     day_diffs = []
+    day_diffdiffs = []
     for day in range(day_erders.shape[0]):
         session_diffs = []
+        session_diffdiffs = []
         for session in range(day_erders.shape[1]):
             print(day+1,session+1)
             ch_diffs = []
@@ -118,11 +124,15 @@ for subject in range(subject_erders.shape[0]):
                 ch_diff = ch_data[0]-ch_data[1]
                 ch_diffs.append(ch_diff)
             session_diffs.append(ch_diffs)
+            session_diffdiffs.append(np.mean(ch_diffs[0] - ch_diffs[1]))
         day_diffs.append(session_diffs)
+        day_diffdiffs.append(session_diffdiffs)
     subject_diffs.append(day_diffs)
+    subject_diffdiffs.append(day_diffdiffs)
         
     print("")
 subject_diffs = np.array(subject_diffs)
+subject_diffdiffs = np.array(subject_diffdiffs)
 print(np.array(subject_diffs).shape)
 # %% ERD/ERS DIFF プロット
 for subject in range(subject_diffs.shape[0]):
@@ -168,3 +178,55 @@ for day in range(subject_diffs.shape[1]):
         plt.xlim(-margin, ind[-1]+width*subject_diffs.shape[0]+margin)
         plt.legend(prop={'size' : 18},loc='upper left', bbox_to_anchor=(1, 1))
         plt.show()
+
+# %% C3-C4 DIFF プロット
+from sklearn.linear_model import LinearRegression
+width = 0.25
+margin = 0.2
+block = width * subject_diffs.shape[0] + margin
+colors = list(mcolors.TABLEAU_COLORS.keys()) + \
+         list(mcolors.CSS4_COLORS.keys())[15:]#15番以降
+for day in range(subject_diffs.shape[1]):
+    for session in range(subject_diffs.shape[2]):
+        plt.figure(figsize=(10, 7))
+        for subject in range(subject_diffs.shape[0]):
+            day_diffs = subject_diffdiffs[subject]
+            diff = day_diffs[day,session]
+            #sems = np.std(diff,axis=1)/np.sqrt(ch_diffs.shape[1])
+            plt.bar(
+                width*subject,
+                diff,
+                width,
+                #yerr=sems,
+                color=colors[subject],
+                label= f"{subject+1}"
+                )
+        plt.ylim([-0.5,1.25])
+        plt.title(f"Day {day + 1} / Session{session + 1}")
+        plt.xlim(-margin, width*subject_diffs.shape[0]+margin)
+        plt.legend(prop={'size' : 18},loc='upper left', bbox_to_anchor=(1, 1))
+        plt.show()
+        #散布図
+        fig = plt.figure(figsize=(10, 7))
+        sx = subject_diffdiffs[:,day,session].reshape(-1,1)
+        sy = [0.74175,0.551,0.5265,0.65025,0.4945,0.5145,0.69725,0.5735,0.58,0.52375,0.5795,0.5505,0.801,0.504,0.58625,0.5085,0.5685]
+        for subject in range(subject_diffs.shape[0]):
+            plt.scatter([sx[subject]],[sy[subject]],
+                        color=colors[subject],
+                        label= f"{subject+1}")
+        plt.xlim([-0.5,1.5])
+        plt.ylim([0,1])
+        mod = LinearRegression()
+        mod_lin = mod.fit(sx,np.array(sy))
+        y_lin_fit = mod_lin.predict(sx)
+        r2_lin = mod.score(sx, sy)
+        corr_matrix = np.corrcoef(sx[:,0], np.array(sy))
+        corr_coefficient = corr_matrix[0, 1]
+        plt.text(0.5, 0.2, '$ R $=' + str(round(corr_coefficient,4)) + ',$ R^{2} $=' + str(round(r2_lin, 4)))
+        plt.plot(sx, y_lin_fit, color = '#000000', linewidth=0.5)
+        plt.title(f"Day {day + 1} / Session{session + 1}")
+        plt.legend(prop={'size' : 18},loc='upper left', bbox_to_anchor=(1, 1))
+        plt.show()
+
+subject_diffdiffs.shape
+# %%
