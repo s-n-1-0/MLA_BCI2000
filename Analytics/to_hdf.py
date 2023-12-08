@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt
 fs = 500
 with open('./eval/settings.json') as f:
     settings = json.load(f)
-    dataset_dir = settings['dataset_dir']
+    dataset_dir = settings['dataset_dir'] + "/s1"
     h5_path = settings["h5_path"]
 updater = DatasetUpdater(h5_path,fs)
 updater.remove_hdf()
 def build_hdf(subject,day):
-    subject_day_dir = f"{settings['dataset_dir']}/s1/{subject}/{day}"
+    subject_day_dir = f"{dataset_dir}/{subject}/{day}"
     file_paths = [f for f in glob.glob(subject_day_dir + "/*") if f.endswith(".npy") ]
     file_names = [os.path.split(f)[1][:-4] for f in file_paths]
     for data_path,name in zip(file_paths,file_names):
@@ -37,9 +37,7 @@ def build_hdf(subject,day):
                     ei = i
                     break
             si += 1
-            data = full_data[:13,:ei]
-            #plt.plot(range(full_data.shape[1]),full_data[-3,:])
-            #plt.show()
+            data = full_data[:13,:(ei if ei > si+fs*4 else si+fs*4)]
             updater.add_numpy(data,[0],[flag],data.shape[1],
                               dataset_attrs={"subject":int(subject),
                                             "session":day,

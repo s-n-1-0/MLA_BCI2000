@@ -132,7 +132,8 @@ def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
     key_left = []
     key_right = []
     for label,baseline,stim,key in zip(labels,baselines,stims,keys):
-        stim = stim[:,:1950] #厳密に4秒ではなくて右端の0.1秒は捨てる(調整用)
+        stim = stim[:,:1990]
+        assert stim.shape[1] == 1990,stim.shape
         if label == "left":
             stims_left.append(stim)
             baselines_left.append(baseline)
@@ -267,5 +268,5 @@ for subject in range(1,18):
 np.save("erders.npy",np.array(subject_erders))
 np.save("erders_ignores.npy",np.array(subject_ignores))
 np.save("erders_trials.npy",np.array(subject_trials))
-np.array(subject_erders).shape,np.array(subject_trials),np.array(subject_ignores).shape
+np.array(subject_erders).shape,np.array(subject_trials).shape,np.array(subject_ignores).shape
 # %%
