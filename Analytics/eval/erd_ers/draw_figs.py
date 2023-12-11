@@ -7,9 +7,18 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import io
 import os
+import json
 from PIL import Image
+import sys
+sys.path.append('../')
+from load_excel import get_data_from_excel
+with open('../settings.json') as f:
+    settings = json.load(f)
+    dataset_dir = settings["dataset_dir"]
 subject_erders = np.load("erders.npy")
 subject_trials =  np.load("erders_trials.npy")
+subject_acc_df = get_data_from_excel(f"{dataset_dir}/evals/test_model/acc_d2_results.xlsx").iloc[:,1:]
+print(subject_acc_df)
 subject_erders.shape,subject_trials.shape#,subject_ignores.shape #日,セッション,ch,lr
 # %%　人ごとのERD/ERSスコアを出力
 stests = []
@@ -209,7 +218,7 @@ for day in range(subject_diffs.shape[1]):
         #散布図
         fig = plt.figure(figsize=(10, 7))
         sx = subject_diffdiffs[:,day,session].reshape(-1,1)
-        sy = [0.74175,0.551,0.5265,0.65025,0.4945,0.5145,0.69725,0.5735,0.58,0.52375,0.5795,0.5505,0.801,0.504,0.58625,0.5085,0.5685]
+        sy = subject_acc_df.values[:,day*2+session]
         for subject in range(subject_diffs.shape[0]):
             plt.scatter([sx[subject]],[sy[subject]],
                         color=colors[subject],
@@ -220,7 +229,7 @@ for day in range(subject_diffs.shape[1]):
         mod_lin = mod.fit(sx,np.array(sy))
         y_lin_fit = mod_lin.predict(sx)
         r2_lin = mod.score(sx, sy)
-        corr_matrix = np.corrcoef(sx[:,0], np.array(sy))
+        corr_matrix = np.corrcoef(sx[:,0], list(sy))
         corr_coefficient = corr_matrix[0, 1]
         plt.text(0.5, 0.2, '$ R $=' + str(round(corr_coefficient,4)) + ',$ R^{2} $=' + str(round(r2_lin, 4)))
         plt.plot(sx, y_lin_fit, color = '#000000', linewidth=0.5)
