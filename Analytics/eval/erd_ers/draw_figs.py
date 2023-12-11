@@ -127,7 +127,7 @@ for subject in range(subject_erders.shape[0]):
         plot_save(sessions,
                       sm_sum,
                       title=f"subject {subject+1} / day{day+1} / session 1+2",
-                      save_path=f"./figs/erders/{subject+1}/{day+1}_1_2.png"
+                      save_path=f"./figs/erders/{subject+1}/{day+1}_1+2.png"
                       )
 # %% ERD/ERS DIFF
 subject_diffs = []
@@ -174,11 +174,15 @@ subject_diffdiffs = np.array(subject_diffdiffs)
 subject_merged_diffdiffs = np.array(subject_merged_diffdiffs)
 subject_diffs.shape,subject_merged_diffs.shape,subject_diffdiffs.shape,subject_merged_diffdiffs.shape
 # %% ERD/ERS DIFF プロット
-def draw_bar(ch_diffs:np.ndarray,title:str):
+def draw_bar(ch_diffs:np.ndarray,title:str,save_path:str):
     sems = np.std(ch_diffs,axis=1)/np.sqrt(ch_diffs.shape[1])
     plt.bar(["C3","Cz","C4"], np.mean(ch_diffs,axis=1), width=0.6, yerr=sems, capsize=10,color=["r","gray","c"])
     plt.ylim([-1,1])
     plt.title(title)
+    dir_path = os.path.dirname(save_path)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+    plt.savefig(save_path)
     plt.show()
 for subject in range(subject_diffs.shape[0]):
     day_diffs = subject_diffs[subject]
@@ -187,9 +191,11 @@ for subject in range(subject_diffs.shape[0]):
         for session in range(day_diffs.shape[1]):
             print(day+1,session+1)
             draw_bar(day_diffs[day,session,:,:],
-                     title=f"Subject {subject + 1} / Day{day+1} / Session{session + 1} (M+SEM)")
+                     title=f"Subject {subject + 1} / Day{day+1} / Session{session + 1} (M+SEM)",
+                     save_path=f"./figs/diff/{subject+1}/{day+1}_{session+1}.png")
         draw_bar(subject_merged_diffs[subject,day],
-                 title=f"Subject {subject + 1} / Day{day+1} / Session 1+2 (M+SEM)")
+                 title=f"Subject {subject + 1} / Day{day+1} / Session 1+2 (M+SEM)",
+                 save_path=f"./figs/diff/{subject+1}/1+2.png")
 print(subject_diffdiffs.shape)
 # %% ERD/ERS DIFF の集団プロット
 width = 0.25
@@ -220,6 +226,7 @@ for day in range(subject_diffs.shape[1]):
         plt.xticks(xlocs, xlabels )
         plt.xlim(-margin, ind[-1]+width*subject_diffs.shape[0]+margin)
         plt.legend(prop={'size' : 18},loc='upper left', bbox_to_anchor=(1, 1))
+        plt.savefig(f"./figs/diff/group_{day+1}_{session+1}.png")
         plt.show()
     #session 1+2
     plt.figure(figsize=(10, 7))
@@ -242,11 +249,11 @@ for day in range(subject_diffs.shape[1]):
     plt.xticks(xlocs, xlabels )
     plt.xlim(-margin, ind[-1]+width*subject_diffs.shape[0]+margin)
     plt.legend(prop={'size' : 18},loc='upper left', bbox_to_anchor=(1, 1))
+    plt.savefig(f"./figs/diff/group_{day+1}_1+2.png")
     plt.show()
-
 # %% C3-C4 DIFF プロット
 
-def draw_scatter(get_data_func,title:str):
+def draw_scatter(get_data_func,title:str,save_path:str):
     width = 0.25
     margin = 0.2
     colors = list(mcolors.TABLEAU_COLORS.keys()) + \
@@ -267,7 +274,14 @@ def draw_scatter(get_data_func,title:str):
     plt.title(f"Day {day + 1} / Session{session + 1}")
     plt.xlim(-margin, width*subject_diffs.shape[0]+margin)
     plt.legend(prop={'size' : 18},loc='upper left', bbox_to_anchor=(1, 1))
+    dir_path = os.path.dirname(save_path)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+    dlist = save_path.split("/")
+    dlist[-1] = "bar_"  + dlist[-1]
+    plt.savefig("/".join(dlist))
     plt.show()
+
     #散布図
     plt.figure(figsize=(10, 7))
     sx = get_data_func(slice(None)).reshape(-1,1)
@@ -288,12 +302,18 @@ def draw_scatter(get_data_func,title:str):
     plt.plot(sx, y_lin_fit, color = '#000000', linewidth=0.5)
     plt.title(title)
     plt.legend(prop={'size' : 18},loc='upper left', bbox_to_anchor=(1, 1))
+    dlist = save_path.split("/")
+    dlist[-1] = "scatter_"  + dlist[-1]
+    plt.savefig("/".join(dlist))
     plt.show()
+    
 for day in range(subject_diffs.shape[1]):
     for session in range(subject_diffs.shape[2]):
         draw_scatter(lambda subject:subject_diffdiffs[subject,day,session],
-        title=f"Day {day + 1} / Session{session + 1}")
+        title=f"Day {day + 1} / Session{session + 1}",
+        save_path=f"./figs/diffdiff/{day+1}_{session+1}.png")
     draw_scatter(lambda subject:subject_merged_diffdiffs[subject,day],
-                 title=f"Day {day + 1} / Session 1+2")
+                 title=f"Day {day + 1} / Session 1+2",
+                 save_path=f"./figs/diffdiff/{day+1}_1+2.png")
 subject_diffdiffs.shape
 # %%
