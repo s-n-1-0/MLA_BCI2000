@@ -8,6 +8,7 @@ import numpy as np
 with open('settings.json') as f:
     settings = json.load(f)
     dataset_dir = settings['dataset_dir']
+    session_id = settings["session_id"]
     toe_settings = settings["tally_to_excel"]
 
     source_file = toe_settings["source_file"]
@@ -18,7 +19,8 @@ with open('settings.json') as f:
 file_keys = ["s1m1","s1m2","s2","s3","s4m1","s4m2"]
 isalignment = True #FB有りを除いて整列 
 # %%
-source_path = dataset_dir + toe_settings["relative_source_dir"] + "/" + source_file
+working_path = dataset_dir + "/" + session_id
+source_path = working_path + toe_settings["relative_source_dir"] + "/" + source_file
 acc_data = pd.read_csv(source_path,header=None).values
 
 #
@@ -106,7 +108,7 @@ for df in df_list:
     line_df_list.append(pd.DataFrame(new_data,columns=None))
 
 # %% Excelに保存
-with pd.ExcelWriter(f"{dataset_dir}/evals/{target_file_name}_results.xlsx") as writer:
+with pd.ExcelWriter(f"{working_path}/evals/{target_file_name}_results.xlsx") as writer:
         for sheet_name,df,lf,ti in zip(target_sheet_names,df_list,line_df_list,target_indexes):
             df.to_excel(writer, sheet_name=f"{sheet_name} col{ti}",index=False)
             lf.to_excel(writer, sheet_name=f"{sheet_name} col{ti}_line",index=False,header=False)
