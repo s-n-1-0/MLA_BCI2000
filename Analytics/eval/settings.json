@@ -4,7 +4,7 @@
     "subjects":["3","15"],
     "day":"1",
     "run_all":false,
-    "session_id":"s3",
+    "lap_id":"s3",
     "tally_to_excel":{
         "relative_source_dir":"/evals/test_model",
         "source_file":"_output_ex_detailed.csv",

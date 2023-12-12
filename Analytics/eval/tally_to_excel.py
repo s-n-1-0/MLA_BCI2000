@@ -8,7 +8,7 @@ import numpy as np
 with open('settings.json') as f:
     settings = json.load(f)
     dataset_dir = settings['dataset_dir']
-    session_id = settings["session_id"]
+    lap_id = settings["lap_id"]
     toe_settings = settings["tally_to_excel"]
 
     source_file = toe_settings["source_file"]
@@ -19,7 +19,7 @@ with open('settings.json') as f:
 file_keys = ["s1m1","s1m2","s2","s3","s4m1","s4m2"]
 isalignment = True #FB有りを除いて整列 
 # %%
-working_path = dataset_dir + "/" + session_id
+working_path = dataset_dir + "/" + lap_id
 source_path = working_path + toe_settings["relative_source_dir"] + "/" + source_file
 acc_data = pd.read_csv(source_path,header=None).values
 

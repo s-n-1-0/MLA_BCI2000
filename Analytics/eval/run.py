@@ -6,8 +6,8 @@ import json
 with open('settings.json') as f:
     settings = json.load(f)
     dataset_dir = settings["dataset_dir"]
-    session_id = settings["session_id"]
-working_dir = f"{dataset_dir}/{session_id}"
+    lap_id = settings["lap_id"]
+working_dir = f"{dataset_dir}/{lap_id}"
 def generate_notebook(subject,day):
     subject_day_dir = f"{working_dir}/{subject}/{day}"
     file_paths = [f for f in glob.glob(subject_day_dir + "/*") if f.endswith(".npy") ]
