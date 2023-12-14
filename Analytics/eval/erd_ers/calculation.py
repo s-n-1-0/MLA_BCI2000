@@ -39,6 +39,7 @@ len(ch_indexes),ch_indexes
 with open('../settings.json') as f:
     settings = json.load(f)
     h5_path = settings["h5_path"]
+    lap_id = settings["lap_id"]
 
 # %%
 def make_first_dict_key(attrs:dict):
@@ -200,7 +201,7 @@ first_dict = get_first_fixs_erders()
 subject_erders = []
 subject_ignores = []
 subject_trials = []
-for subject in range(1,18):
+for subject in range(1,18) if lap_id == "s1" else [1,2,3,4,5,7,8,9,10,11,12,13,15,16,17]:
     day_erders = []
     day_ignores = []
     day_trials = []
@@ -265,8 +266,8 @@ for subject in range(1,18):
     subject_trials.append(day_trials)
 
 # %%
-np.save("erders.npy",np.array(subject_erders))
-np.save("erders_ignores.npy",np.array(subject_ignores))
-np.save("erders_trials.npy",np.array(subject_trials))
+np.save(lap_id + "_erders.npy",np.array(subject_erders))
+np.save(lap_id + "_erders_ignores.npy",np.array(subject_ignores))
+np.save(lap_id + "_erders_trials.npy",np.array(subject_trials))
 np.array(subject_erders).shape,np.array(subject_trials).shape,np.array(subject_ignores).shape
 # %%

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 fs = 500
 with open('./eval/settings.json') as f:
     settings = json.load(f)
-    dataset_dir = settings['dataset_dir'] + "/s1"
+    dataset_dir = settings['dataset_dir'] + "/" + settings["lap_id"]
     h5_path = settings["h5_path"]
 updater = DatasetUpdater(h5_path,fs)
 updater.remove_hdf()

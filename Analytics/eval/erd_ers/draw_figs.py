@@ -15,9 +15,10 @@ sys.path.append('../')
 from load_excel import get_data_from_excel
 with open('../settings.json') as f:
     settings = json.load(f)
-    dataset_dir = settings["dataset_dir"]
-subject_erders = np.load("erders.npy")
-subject_trials =  np.load("erders_trials.npy")
+    lap_id = settings["lap_id"]
+    dataset_dir = settings["dataset_dir"] + "/" + lap_id
+subject_erders = np.load(lap_id + "_erders.npy")
+subject_trials =  np.load(lap_id + "_erders_trials.npy")
 subject_acc_df = get_data_from_excel(f"{dataset_dir}/evals/test_model/acc_d2_results.xlsx").iloc[:,1:]
 print(subject_acc_df)
 subject_erders.shape,subject_trials.shape#,subject_ignores.shape #日,セッション,ch,lr
