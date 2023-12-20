@@ -14,6 +14,7 @@ import sys
 sys.path.append('../')
 from load_excel import get_data_from_excel
 from calculation_diffs import calc_diffs, merge_sessions
+from scipy.stats import pearsonr,spearmanr
 with open('../settings.json') as f:
     settings = json.load(f)
     lap_id = settings["lap_id"]
@@ -209,9 +210,10 @@ for day in range(subject_diffs.shape[1]):
     plt.show()
 # %% C3-C4 DIFF プロット
 
-def draw_scatter(get_data_func,title:str,save_path:str):
+def draw_group_bar_scatter(get_data_func,title:str,save_path:str):
     width = 0.25
     margin = 0.2
+    is_pearson = False #Flaseならスピアマン
     colors = list(mcolors.TABLEAU_COLORS.keys()) + \
             list(mcolors.CSS4_COLORS.keys())[15:]#15番以降
     plt.figure(figsize=(10, 7))
@@ -251,10 +253,16 @@ def draw_scatter(get_data_func,title:str,save_path:str):
     mod = LinearRegression()
     mod_lin = mod.fit(sx,np.array(sy))
     y_lin_fit = mod_lin.predict(sx)
-    r2_lin = mod.score(sx, sy)
-    corr_matrix = np.corrcoef(sx[:,0], list(sy))
-    corr_coefficient = corr_matrix[0, 1]
-    plt.text(0.5, 0.2, '$ R $=' + str(round(corr_coefficient,4)) + ',$ R^{2} $=' + str(round(r2_lin, 4)))
+    if is_pearson:
+        r,p = pearsonr(sx[:,0],sy)
+        r2 = r ** 2
+        plt.text(0.5, 0.2, '$ R $=' + str(round(r,4)) + ',$ R^{2} $=' + str(round(r2, 4)) + "\n"+\
+                 "$ p $="+str(round(p,5)))
+    else:
+        r,p = spearmanr(sx[:,0],sy)
+        r2 = r ** 2
+        plt.text(0.5, 0.2, '$ R_s $=' + str(round(r,4)) + ',$ R_s^{2} $=' + str(round(r2, 4)) + "\n"+\
+                 "$ p_s $="+str(round(p,5)))
     plt.plot(sx, y_lin_fit, color = '#000000', linewidth=0.5)
     plt.title(title)
     plt.legend(prop={'size' : 18},loc='upper left', bbox_to_anchor=(1, 1))
@@ -265,10 +273,10 @@ def draw_scatter(get_data_func,title:str,save_path:str):
     
 for day in range(subject_diffs.shape[1]):
     for session in range(subject_diffs.shape[2]):
-        draw_scatter(lambda subject:subject_diffdiffs[subject,day,session],
+        draw_group_bar_scatter(lambda subject:subject_diffdiffs[subject,day,session],
         title=f"Day {day + 1} / Session{session + 1}",
         save_path=f"./figs/diffdiff/{day+1}_{session+1}.png")
-    draw_scatter(lambda subject:subject_merged_diffdiffs[subject,day],
+    draw_group_bar_scatter(lambda subject:subject_merged_diffdiffs[subject,day],
                  title=f"Day {day + 1} / Session 1+2",
                  save_path=f"./figs/diffdiff/{day+1}_1+2.png")
 subject_diffdiffs.shape
