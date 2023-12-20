@@ -13,6 +13,7 @@ from sklearn.linear_model import LinearRegression
 import sys
 sys.path.append('../')
 from load_excel import get_data_from_excel
+from calculation_diffs import calc_diffs, merge_sessions
 with open('../settings.json') as f:
     settings = json.load(f)
     lap_id = settings["lap_id"]
@@ -108,13 +109,6 @@ def plot_save(ch_erders,trials,title:str,save_path:str):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
     new_img.save(save_path)
-def merge_sessions(subject:int,day:int):
-    ts_product = subject_erders[subject,day] * subject_trials[subject,day][..., np.newaxis]
-    ts_sum = np.sum(ts_product, axis=0)  # sessionに関する次元で合計
-    # subject_trialsについて、必要な次元に沿って合計を計算
-    sm_sum = np.sum(subject_trials[subject,day], axis=0)
-    sessions = ts_sum / sm_sum[..., np.newaxis]
-    return sessions,sm_sum
 for subject in range(subject_erders.shape[0]):
     print(f"{subject +1}人目")
     for day in range(day_erders.shape[0]):
@@ -124,55 +118,16 @@ for subject in range(subject_erders.shape[0]):
                       title=f"subject {subject+1} / day{day+1} / session{session+1}",
                       save_path=f"./figs/erders/{subject+1}/{day+1}_{session+1}.png"
                       )
-        sessions,sm_sum = merge_sessions(subject,day)
+        sessions,sm_sum = merge_sessions(subject_erders,
+                                         subject_trials,
+                                         subject,day)
         plot_save(sessions,
                       sm_sum,
                       title=f"subject {subject+1} / day{day+1} / session 1+2",
                       save_path=f"./figs/erders/{subject+1}/{day+1}_1+2.png"
                       )
 # %% ERD/ERS DIFF
-subject_diffs = []
-subject_merged_diffs = []
-subject_diffdiffs = []
-subject_merged_diffdiffs = []
-def calc_ch_diffs(ch_data):
-    ch_diffs = []
-    for ch in range(day_erders.shape[2]):
-        ch_diff = ch_data[ch,0]-ch_data[ch,1]
-        ch_diffs.append(ch_diff)
-    return  np.array(ch_diffs)
-for subject in range(subject_erders.shape[0]):
-    day_erders = subject_erders[subject]
-    day_trials = subject_trials[subject]
-    print(f"{subject +1}人目")
-    day_diffs = []
-    day_merged_diffs = []
-    day_diffdiffs = []
-    day_merged_diffdiffs = []
-    for day in range(day_erders.shape[0]):
-        session_diffs = []
-        session_diffdiffs = []
-        for session in range(day_erders.shape[1]):
-            print(day+1,session+1)
-            ch_diffs = calc_ch_diffs(day_erders[day,session])
-            session_diffs.append(ch_diffs)
-            session_diffdiffs.append(np.mean(ch_diffs[0] - ch_diffs[1]))
-        day_diffs.append(session_diffs)
-        data, _ = merge_sessions(subject,day)
-        merged_ch_diff = calc_ch_diffs(data)
-        day_merged_diffs.append(merged_ch_diff)
-        day_diffdiffs.append(session_diffdiffs)
-        day_merged_diffdiffs.append(np.mean(merged_ch_diff[0]-merged_ch_diff[1]))
-    subject_diffs.append(day_diffs)
-    subject_merged_diffs.append(day_merged_diffs)
-    subject_diffdiffs.append(day_diffdiffs)
-    subject_merged_diffdiffs.append(day_merged_diffdiffs)
-        
-    print("")
-subject_diffs = np.array(subject_diffs)
-subject_merged_diffs = np.array(subject_merged_diffs)
-subject_diffdiffs = np.array(subject_diffdiffs)
-subject_merged_diffdiffs = np.array(subject_merged_diffdiffs)
+subject_diffs,subject_merged_diffs,subject_diffdiffs,subject_merged_diffdiffs = calc_diffs(subject_erders,subject_trials)
 subject_diffs.shape,subject_merged_diffs.shape,subject_diffdiffs.shape,subject_merged_diffdiffs.shape
 # %% ERD/ERS DIFF プロット
 def draw_bar(ch_diffs:np.ndarray,title:str,save_path:str):
