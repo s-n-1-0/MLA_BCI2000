@@ -56,7 +56,6 @@ if __name__ == "__main__":
     オプション
     """
     model_path = ""
-    session_name = "s1"
     fs = 500
     ch_size = 13
     block_size = 750
@@ -66,7 +65,8 @@ if __name__ == "__main__":
     with open('settings.json') as f:
         settings = json.load(f)
         dataset_dir = settings['dataset_dir']
-    target_dir = f"{dataset_dir}/{session_name}"
+        lap_id = settings["lap_id"]
+    target_dir = f"{dataset_dir}/{lap_id}"
     def write_metrics(subject,day):
         subject_day_dir = f"{target_dir}/{subject}/{day}"
         file_paths = [f for f in glob.glob(subject_day_dir + "/*") if f.endswith(".npy") ]
@@ -74,7 +74,7 @@ if __name__ == "__main__":
         
         for data_path,name in zip(file_paths,file_names):
             name = name.replace("_concatenate","")
-            eval_dir = f"{dataset_dir}/evals/test_model/"
+            eval_dir = f"{target_dir}/evals"
             if not os.path.exists(eval_dir):
                 os.makedirs(eval_dir)
             x = np.load(data_path)
@@ -86,20 +86,20 @@ if __name__ == "__main__":
             data_metrics,data_detailed_metrics,_ = analyse1(trueclasses,predictclass_list)
             for d0,apname in zip([data_metrics,data_detailed_metrics],
                             ["","_detailed"]):
-                log_path = eval_dir + "output_acc" + apname + ".csv"
+                log_path = eval_dir + "/output_acc" + apname + ".csv"
                 with open(log_path, 'a') as f:
                     writer = csv.writer(f, lineterminator='\n') # 行末は改行
-                    nlst = data_path.replace(target_dir+"/","").replace("\\","/").split("/")
+                    nlst = data_path.replace(dataset_dir+"/","").replace("\\","/").split("/")[1:]
                     cols = [nlst[0],nlst[1],nlst[2]]
                     cols += [d0[0][0],d0[1][0]] ##accだけ追加
                     writer.writerow(cols)
                     
             for d0,apname in zip([data_metrics,data_detailed_metrics],
                             ["","_detailed"]):
-                log_path = eval_dir + "output_ex" + apname + ".csv"
+                log_path = eval_dir + "/output_ex" + apname + ".csv"
                 with open(log_path, 'a') as f:
                     writer = csv.writer(f, lineterminator='\n') # 行末は改行
-                    nlst = data_path.replace(target_dir+"/","").replace("\\","/").split("/")
+                    nlst = data_path.replace(dataset_dir+"/","").replace("\\","/").split("/")[1:]
                     cols = [nlst[0],nlst[1],nlst[2]]
                     for i in range(1,3):
                         cols += [d0[0][i],d0[1][i]]#つまり通常とfixed
