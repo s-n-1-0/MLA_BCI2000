@@ -10,9 +10,9 @@ with open('settings.json') as f:
     dataset_dir = settings["dataset_dir"] + "/" + lap_id
 
 n = 3
-subjects = 17
+subjects = 15
 is_centering = False
-metric = "dtw"
+metric = "euclidean"
 excel_path = "C:/Users/2221012/Downloads/1+2日目.xlsx"
 subject_acc_df = get_data_from_excel(excel_path,subjects=subjects,iloc=17,index_col=0).iloc[:,1:]
 print(subject_acc_df)
