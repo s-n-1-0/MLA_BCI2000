@@ -4,26 +4,38 @@
 #
 # %%
 import pingouin as pg
+import pandas as pd
+from load_excel import get_data_from_excel
 # %%
-df = pg.read_dataset('mixed_anova')
+excel_path = "C:/Users/2221012/Downloads/1+2日目.xlsx"
+subjects = 15
+a_groups = [3,5,8,10,11,12,16,17]
+b_groups = [1,2,4,7,9,13,15]
+def read_data():
+    return get_data_from_excel(excel_path,subjects=subjects,iloc=17,index_col=0)
+read_data()
+# %%
+_df = read_data()
+groups = {}
+for a in a_groups:groups[a] = "A"
+for b in b_groups:groups[b] = "B"
+
+df = pd.DataFrame(columns = ["Subject","Group","Time","Scores"])
+for time in _df.columns:
+    for s in groups.keys():
+        df.loc[len(df)] = [s, groups[s], time,_df.loc[s,time]]
 df
-# %%
+# %% 2要因混合計画
 aov = pg.mixed_anova(data=df, dv='Scores', between='Group', within='Time',
-                     subject='Subject', correction=False, effsize="np2")
+                     subject='Subject', correction="auto", effsize="np2")
 aov
 
 # %%
 
-df.reindex(columns=['Subject', 'Group', 'Time','Scores'])
-grouped = df.groupby(['Subject','Group'])['Scores'].apply(list).reset_index()
-
-
-max_len = grouped['Scores'].str.len().max()
-for i in range(max_len):
-    grouped[f'Scores{i+1}'] = grouped['Scores'].apply(lambda x: x[i] if i < len(x) else None)
-
-grouped.drop(columns=['Subject','Scores'], inplace=True)# 最初のリスト列を削除
-grouped
+grouped = read_data()
+grouped.insert(0,"クラスタ",None)
+for a in a_groups: grouped.loc[a,'クラスタ'] = "A"
+for b in b_groups: grouped.loc[b,'クラスタ'] = "B"
 
 # %%
 from rpy2.robjects.conversion import localconverter
@@ -34,6 +46,5 @@ with localconverter(robjects.default_converter + pandas2ri.converter):
     r_df = py2rpy(grouped)
     robjects.r.assign("df", r_df)
 robjects.r("df")
-robjects.r('options(encoding = "utf-8")')
 robjects.r('source(file="C:/test/anovakun_489.txt")')
-robjects.r('anovakun(df, "AsB", 2, 3)')
+robjects.r('anovakun(df, "AsB", 2, 16)')
