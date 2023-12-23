@@ -14,7 +14,7 @@ subjects = 15
 is_centering = False
 metric = "euclidean"
 excel_path = "C:/Users/2221012/Downloads/1+2日目.xlsx"
-subject_acc_df = get_data_from_excel(excel_path,subjects=subjects,iloc=17,index_col=0).iloc[:,1:]
+subject_acc_df = get_data_from_excel(excel_path,subjects=subjects,iloc=17,index_col=0)
 print(subject_acc_df)
 nm_data = subject_acc_df.values#TimeSeriesScalerMeanVariance().fit_transform(subject_acc_df.values)
 print(nm_data.shape)
