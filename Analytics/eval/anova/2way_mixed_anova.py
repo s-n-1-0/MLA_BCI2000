@@ -1,10 +1,12 @@
 # %%
 #
-# TODO: 2要因混合分析をやる
+# 2要因混合分析
 #
 # %%
 import pingouin as pg
 import pandas as pd
+import sys
+sys.path.append('../')
 from load_excel import get_data_from_excel
 # %%
 excel_path = "C:/Users/2221012/Downloads/1+2日目.xlsx"
