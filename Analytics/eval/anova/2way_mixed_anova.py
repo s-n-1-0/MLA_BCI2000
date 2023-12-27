@@ -29,7 +29,7 @@ for time in _df.columns:
 df
 # %% 2要因混合計画
 aov = pg.mixed_anova(data=df, dv='Scores', between='Group', within='Time',
-                     subject='Subject', correction="auto", effsize="np2")
+                     subject='Subject', correction=False, effsize="n2")
 aov
 
 # %%

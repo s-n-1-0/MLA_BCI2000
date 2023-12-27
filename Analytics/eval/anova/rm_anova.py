@@ -25,7 +25,7 @@ for time in _df.columns:
 df
 # %% 1要因 rm分散分析
 print("A" if is_a else "B")
-aov = pg.rm_anova(data=df, dv='Scores', within='Time', subject='Subject', detailed=True)
+aov = pg.rm_anova(data=df, dv='Scores', within='Time', subject='Subject', detailed=True,effsize="n2")
 aov
 
 # %%
