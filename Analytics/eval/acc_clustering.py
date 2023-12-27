@@ -35,20 +35,23 @@ plt.show()
 
 km = TimeSeriesKMeans(n_clusters=n, random_state=1234, metric=metric,max_iter=1000)
 labels = km.fit_predict(nm_data)
-
+plt.rcParams['xtick.direction'] = 'in'
+plt.rcParams['ytick.direction'] = 'in'
 fig, axes = plt.subplots(n, figsize=(8.0, 18.0))
 plt.subplots_adjust(hspace=0.5)
 for i in range(n):
     ax = axes[i]
-    for xx,label in zip(nm_data[labels == i],subject_acc_df.index[labels == i]):
-        ax.plot(xx.ravel(), "k-", alpha=.2,label=label)
+    for xx in nm_data[labels == i]:
+        ax.plot(xx.ravel(), "k-", alpha=.2)
     ax.plot(km.cluster_centers_[i].ravel(), "r-")
     
-    nm_ymin, nm_ymax = (-0.5,1)
+    nm_ymin, nm_ymax = (0.4,1)
     ax.set_ylim(nm_ymin, nm_ymax)
+    plt.xlabel("   ")
+    plt.ylabel("   ")
+    ax.set_xticks(range(16))
     datanum = np.count_nonzero(labels == i)
-    ax.text(0.5, (nm_ymax*0.9+nm_ymin*0.1), f'Cluster {(i + 1)} : n = {datanum}')
+    ax.text(0.5, (nm_ymax*0.9+nm_ymin*0.1), f'Cluster {(i + 1)} : n = {datanum} ({",".join([str(l) for l in subject_acc_df.index[labels == i]])})')
     if i == 0:
         ax.set_title(metric.capitalize() + " k-means")
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 # %%
