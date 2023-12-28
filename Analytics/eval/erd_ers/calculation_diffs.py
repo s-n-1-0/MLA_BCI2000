@@ -2,17 +2,36 @@
 # ERD/ERSの差分を求める
 #
 import numpy as np
-def merge_sessions(_subject_erders:np.ndarray,
-            subject:int,
-            day:int):
-    subject_erders = _subject_erders[:,:,:,:,:,0,:]
-    subject_trials = _subject_erders[:,:,:,:,:,2,0]
-    ts_product = subject_erders[subject,day] * subject_trials[subject,day][..., np.newaxis]
-    ts_sum = np.sum(ts_product, axis=0)  # sessionに関する次元で合計
-    # subject_trialsについて、必要な次元に沿って合計を計算
-    sm_sum = np.sum(subject_trials[subject,day], axis=0)
-    sessions = ts_sum / sm_sum[..., np.newaxis]
-    return sessions,sm_sum
+
+def merge_sessions(_subject_orders: np.ndarray, subject: int, day: int):
+    # 各セッションの平均値、標準偏差、トライアル数を取得
+    subject_means = _subject_orders[subject, day, :, :, :, 0, :]  # 平均値
+    subject_std = _subject_orders[subject, day, :, :, :, 1, :]    # 標準偏差
+    subject_trials = _subject_orders[subject, day, :, :, :, 2, :]  # トライアル数
+
+    combined_mean = np.zeros(subject_means.shape[1:])
+    combined_std_dev = np.zeros(subject_std.shape[1:])
+    total_trials = np.zeros(subject_trials.shape[1:-1])
+
+    # タイムスタンプごとに計算
+    for ch in range(subject_means.shape[1]):
+        for lr in range(subject_means.shape[2]):
+            for ts in range(subject_means.shape[3]):
+                # 重み付き平均値の計算
+                weighted_mean_sum = np.sum(subject_means[:, ch, lr, ts] * subject_trials[:, ch, lr, 0])
+                trial_sum = np.sum(subject_trials[:, ch, lr, 0])
+                combined_mean[ch, lr, ts] = weighted_mean_sum / trial_sum
+
+                # 標準偏差の結合
+                var_sum = np.sum(subject_std[:, ch, lr, ts]**2 * subject_trials[:, ch, lr, 0])
+                combined_std_dev[ch, lr, ts] = np.sqrt(var_sum / trial_sum)
+
+                total_trials[ch, lr] = trial_sum
+
+    return combined_mean, combined_std_dev, total_trials
+
+
+
 def calc_ch_diffs(ch_data):
     ch_diffs = []
     for ch in range(ch_data.shape[0]):
@@ -39,7 +58,7 @@ def calc_diffs(subject_erders:np.ndarray):
                 session_diffs.append(ch_diffs)
                 session_diffdiffs.append(np.mean(ch_diffs[0] - ch_diffs[1]))
             day_diffs.append(session_diffs)
-            data, _ = merge_sessions(subject_erders,
+            data, _,_ = merge_sessions(subject_erders,
                                      subject,day)
             merged_ch_diff = calc_ch_diffs(data)
             day_merged_diffs.append(merged_ch_diff)

@@ -73,7 +73,7 @@ def show_errorbar(left_erders,right_erders,left_err,right_err):
     fig.suptitle(f"ERD/ERS (M+SEM)")
     plt.show()
     return img
-def plot_save(ch_erders,trials,title:str,save_path:str):
+def plot_save(ch_erders,std,trials,title:str,save_path:str):
     fig = plt.figure(figsize=(10, 7))
     ch_err = np.std(ch_erders,axis=2)/np.sqrt(trials)
     ch_mean = np.mean(ch_erders,axis=2)
@@ -82,7 +82,7 @@ def plot_save(ch_erders,trials,title:str,save_path:str):
         for i,label in enumerate(["left","right"]):
             erders = ch_erders[ch,i]
             print(f"{label} : {len(erders)}")
-            std_erders = np.std(erders,axis=0)
+            std_erders = std[ch,i] / np.sqrt(trials[ch,i])
             time_stft = np.linspace(0, 4, len(erders), endpoint=False)
             plt.subplot(3, 1, ch+1)
             plt.title(ch_name)
@@ -114,13 +114,15 @@ for subject in range(subject_erders.shape[0]):
     for day in range(day_erders.shape[0]):
         for session in range(day_erders.shape[1]):
             plot_save(subject_erders[subject,day,session,:,:,0,:],
+                      subject_erders[subject,day,session,:,:,1,:],
                       subject_erders[subject,day,session,:,:,2,0],
                       title=f"subject {subject+1} / day{day+1} / session{session+1}",
                       save_path=f"./figs/erders/{subject+1}/{day+1}_{session+1}.png"
                       )
-        sessions,sm_sum = merge_sessions(subject_erders,
+        sessions,std,sm_sum = merge_sessions(subject_erders,
                                          subject,day)
         plot_save(sessions,
+                      std,
                       sm_sum,
                       title=f"subject {subject+1} / day{day+1} / session 1+2",
                       save_path=f"./figs/erders/{subject+1}/{day+1}_1+2.png"
