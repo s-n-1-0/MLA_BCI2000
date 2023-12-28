@@ -20,14 +20,13 @@ with open('../settings.json') as f:
     lap_id = settings["lap_id"]
     dataset_dir = settings["dataset_dir"] + "/" + lap_id
 subject_erders = np.load(lap_id + "_erders.npy")
-subject_trials =  np.load(lap_id + "_erders_trials.npy")
-subject_acc_df = get_data_from_excel(f"{dataset_dir}/evals/test_model/acc_d2_results.xlsx").iloc[:,1:]
+subject_acc_df = get_data_from_excel(f"{dataset_dir}/evals/_acc_d2_results.xlsx").iloc[:,1:]
 print(subject_acc_df)
-subject_erders.shape,subject_trials.shape#,subject_ignores.shape #日,セッション,ch,lr
+subject_erders.shape#,subject_ignores.shape #日,セッション,ch,lr
 # %%　人ごとのERD/ERSスコアを出力
 stests = []
 for subject in range(subject_erders.shape[0]):
-    day_erders = subject_erders[subject]
+    day_erders = subject_erders[subject,:,:,:,:,0]
     stests.append(0)
     print(f"{subject +1}人目")
     for day in range(day_erders.shape[0]):
@@ -114,13 +113,12 @@ for subject in range(subject_erders.shape[0]):
     print(f"{subject +1}人目")
     for day in range(day_erders.shape[0]):
         for session in range(day_erders.shape[1]):
-            plot_save(subject_erders[subject,day,session],
-                      subject_trials[subject,day,session],
+            plot_save(subject_erders[subject,day,session,:,:,0,:],
+                      subject_erders[subject,day,session,:,:,2,0],
                       title=f"subject {subject+1} / day{day+1} / session{session+1}",
                       save_path=f"./figs/erders/{subject+1}/{day+1}_{session+1}.png"
                       )
         sessions,sm_sum = merge_sessions(subject_erders,
-                                         subject_trials,
                                          subject,day)
         plot_save(sessions,
                       sm_sum,
@@ -128,7 +126,7 @@ for subject in range(subject_erders.shape[0]):
                       save_path=f"./figs/erders/{subject+1}/{day+1}_1+2.png"
                       )
 # %% ERD/ERS DIFF
-subject_diffs,subject_merged_diffs,subject_diffdiffs,subject_merged_diffdiffs = calc_diffs(subject_erders,subject_trials)
+subject_diffs,subject_merged_diffs,subject_diffdiffs,subject_merged_diffdiffs = calc_diffs(subject_erders)
 subject_diffs.shape,subject_merged_diffs.shape,subject_diffdiffs.shape,subject_merged_diffdiffs.shape
 # %% ERD/ERS DIFF プロット
 def draw_bar(ch_diffs:np.ndarray,title:str,save_path:str):
@@ -280,4 +278,72 @@ for day in range(subject_diffs.shape[1]):
                  title=f"Day {day + 1} / Session 1+2",
                  save_path=f"./figs/diffdiff/{day+1}_1+2.png")
 subject_diffdiffs.shape
+# %%
+import math
+import numpy as np
+from matplotlib.patches import Rectangle
+_colors_keys = sorted(
+            list(mcolors.CSS4_COLORS.keys()), key=lambda c: tuple(mcolors.rgb_to_hsv(mcolors.to_rgb(c))))[15:]
+colors_keys = np.array(_colors_keys)[[6,13,23,38,47,\
+                           50,54,63,65,71,\
+                            81,90,92,105,112,\
+                                121,130]]
+_colors = {}
+#for key in mcolors.TABLEAU_COLORS.keys(): _colors[key] = mcolors.TABLEAU_COLORS[key]
+for key in mcolors.CSS4_COLORS.keys(): _colors[key] = mcolors.CSS4_COLORS[key]
+colors = {}
+for key in colors_keys:
+    colors[key] = _colors[key]
+def plot_colortable(colors, *, ncols=4, sort_colors=True):
+
+    cell_width = 300
+    cell_height = 22
+    swatch_width = 48
+    margin = 12
+
+    # Sort colors by hue, saturation, value and name.
+    if sort_colors is True:
+        names = sorted(
+            colors, key=lambda c: tuple(mcolors.rgb_to_hsv(mcolors.to_rgb(c))))
+    else:
+        names = list(colors)
+
+    n = len(names)
+    nrows = math.ceil(n / ncols)
+
+    width = cell_width * ncols + 2 * margin
+    height = cell_height * nrows + 2 * margin
+    dpi = 72
+
+    fig, ax = plt.subplots(figsize=(width / dpi, height / dpi), dpi=dpi)
+    fig.subplots_adjust(margin/width, margin/height,
+                        (width-margin)/width, (height-margin)/height)
+    ax.set_xlim(0, cell_width * ncols)
+    ax.set_ylim(cell_height * (nrows-0.5), -cell_height/2.)
+    ax.yaxis.set_visible(False)
+    ax.xaxis.set_visible(False)
+    ax.set_axis_off()
+
+    for i, name in enumerate(names):
+        row = i % nrows
+        col = i // nrows
+        y = row * cell_height
+
+        swatch_start_x = cell_width * col
+        text_pos_x = cell_width * col + swatch_width + 7
+
+        ax.text(text_pos_x, y, f"{i+1} {name} / {colors[name]}", fontsize=14,
+                horizontalalignment='left',
+                verticalalignment='center')
+
+        ax.add_patch(
+            Rectangle(xy=(swatch_start_x, y-9), width=swatch_width,
+                      height=18, facecolor=colors[name], edgecolor='0.7')
+        )
+
+    return fig
+plot_colortable(colors, ncols=3, sort_colors=False)
+[colors[key] for key in colors_keys]
+# %%
+subject_erders[15,0,1,0,0,0,:]
 # %%

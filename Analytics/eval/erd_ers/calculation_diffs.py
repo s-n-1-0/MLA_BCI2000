@@ -2,10 +2,11 @@
 # ERD/ERSの差分を求める
 #
 import numpy as np
-def merge_sessions(subject_erders:np.ndarray,
-                   subject_trials:np.ndarray,
-                   subject:int,
-                   day:int):
+def merge_sessions(_subject_erders:np.ndarray,
+            subject:int,
+            day:int):
+    subject_erders = _subject_erders[:,:,:,:,:,0,:]
+    subject_trials = _subject_erders[:,:,:,:,:,2,0]
     ts_product = subject_erders[subject,day] * subject_trials[subject,day][..., np.newaxis]
     ts_sum = np.sum(ts_product, axis=0)  # sessionに関する次元で合計
     # subject_trialsについて、必要な次元に沿って合計を計算
@@ -18,13 +19,13 @@ def calc_ch_diffs(ch_data):
         ch_diff = ch_data[ch,0]-ch_data[ch,1]
         ch_diffs.append(ch_diff)
     return  np.array(ch_diffs)
-def calc_diffs(subject_erders:np.ndarray,subject_trials:np.ndarray):
+def calc_diffs(subject_erders:np.ndarray):
     subject_diffs = []
     subject_merged_diffs = []
     subject_diffdiffs = []
     subject_merged_diffdiffs = []
     for subject in range(subject_erders.shape[0]):
-        day_erders = subject_erders[subject]
+        day_erders = subject_erders[subject,:,:,:,:,0,:]
         day_diffs = []
         day_merged_diffs = []
         day_diffdiffs = []
@@ -39,7 +40,6 @@ def calc_diffs(subject_erders:np.ndarray,subject_trials:np.ndarray):
                 session_diffdiffs.append(np.mean(ch_diffs[0] - ch_diffs[1]))
             day_diffs.append(session_diffs)
             data, _ = merge_sessions(subject_erders,
-                                     subject_trials,
                                      subject,day)
             merged_ch_diff = calc_ch_diffs(data)
             day_merged_diffs.append(merged_ch_diff)

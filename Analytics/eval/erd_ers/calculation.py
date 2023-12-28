@@ -147,13 +147,11 @@ def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
 
     ch_erders = []
     ch_err = []
-    ch_trials = []
     ignore_count_list = [] #ch×(lr,2)
     for ch,ch_name in enumerate(["C3","Cz","C4"]):
         print(f"=>{ch}")
         lr_erders = []
         lr_err = []
-        lr_trials = []
         iglist = [0,0,0,0,0] #%スレッシュホールド
         for label,_stims,_baselines,_keys in zip(["left","right"],
                                            [stims_left,stims_right],
@@ -186,25 +184,24 @@ def get_erders(subject:int,dataset_filter:Callable[[h5py.Dataset],bool]):
             print(f"{label} : {len(erders)}")
             erders = np.array(erders)
             std_erders = np.std(erders,axis=0)
-            lr_erders.append(np.mean(erders,axis=0))
+            print(erders.shape)
+            lr_erders.append([np.mean(erders,axis=0),
+                              np.std(erders,axis=0),
+                              [erders.shape[0]]*erders.shape[1]])
             lr_err.append(std_erders)
-            lr_trials.append(erders.shape[0])
         ignore_count_list.append(iglist)
         ch_erders.append(lr_erders)
-        ch_err.append(lr_err)
-        ch_trials.append(lr_trials)
-    return ch_erders,ch_trials,ignore_count_list,
+        ch_err.append(lr_err)#
+    return ch_erders,ignore_count_list,
 # %%
 first_dict = get_first_fixs_erders()
 
 # %%
 subject_erders = []
 subject_ignores = []
-subject_trials = []
 for subject in range(1,18) if lap_id == "s1" else [1,2,3,4,5,7,8,9,10,11,12,13,15,16,17]:
     day_erders = []
     day_ignores = []
-    day_trials = []
     print(subject)
     if iseach_day:
         for day in range(1,5):
@@ -227,13 +224,11 @@ for subject in range(1,18) if lap_id == "s1" else [1,2,3,4,5,7,8,9,10,11,12,13,1
                     if (not isfirst_baseline) and attrs["stim_index"]-550 < 0:
                         ret = False
                     return ret
-                erders,trials,ignore_list = get_erders(subject,dataset_filter)
+                erders,ignore_list = get_erders(subject,dataset_filter)
                 session_erders.append(erders)
                 session_ignores.append(ignore_list)
-                session_trials.append(trials)
             day_erders.append(session_erders)
             day_ignores.append(session_ignores)
-            day_trials.append(session_trials)
     else:
         session_erders = []
         session_ignores = []
@@ -263,11 +258,9 @@ for subject in range(1,18) if lap_id == "s1" else [1,2,3,4,5,7,8,9,10,11,12,13,1
         day_ignores.append(session_ignores)
     subject_erders.append(day_erders)
     subject_ignores.append(day_ignores)
-    subject_trials.append(day_trials)
 
 # %%
 np.save(lap_id + "_erders.npy",np.array(subject_erders))
 np.save(lap_id + "_erders_ignores.npy",np.array(subject_ignores))
-np.save(lap_id + "_erders_trials.npy",np.array(subject_trials))
-np.array(subject_erders).shape,np.array(subject_trials).shape,np.array(subject_ignores).shape
+np.array(subject_erders).shape,np.array(subject_ignores).shape
 # %%
