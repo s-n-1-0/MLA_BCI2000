@@ -2,7 +2,7 @@
 % (例題mtrx.mの中身は96*9の観測データが存在する)
 
 %%load mtrx.mat
-mtrx = readtable("C:\MLA_Saves_Bk\evals\acc_results.csv");
+mtrx = readtable("C:\MLA_Saves_Bk\evals\test_model\acc_d2_results.csv");
 mtrx = table2array(mtrx(:, 1:end));
 
 group = ones(size(mtrx,1),1);%被験者内要因は1つしかないので全て1
