@@ -7,8 +7,8 @@ from load_excel import get_data_from_excel
 # %%
 excel_path = "C:/Users/2221012/Downloads/1+2日目.xlsx"
 subjects = 15
-a_groups = [3,5,8,10,11,12,16,17]
-b_groups = [1,2,4,7,9,13,15]
+a_group = [3,5,8,10,11,12,16,17]
+b_group = [1,2,4,7,9,13,15]
 subjects = 15
 pd.options.display.precision = 7
 def read_data():
@@ -16,8 +16,8 @@ def read_data():
 read_data()
 # %%
 data = read_data()
-a_data = data.loc[a_groups]
-b_data = data.loc[b_groups]
+a_data = data.loc[a_group]
+b_data = data.loc[b_group]
 def ttest(i:int):
     a = a_data.values[:,i]
     b = b_data.values[:,i]
