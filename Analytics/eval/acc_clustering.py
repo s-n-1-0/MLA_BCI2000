@@ -21,16 +21,16 @@ print(nm_data.shape)
 if is_centering:
     nm_data = nm_data - np.nanmean(nm_data,axis=1,keepdims=True)
     print(nm_data.mean(axis=1,keepdims=True).shape)
-distortions = [] 
+sse_list = [] 
 for i in range(1,subjects): 
     ts_km = TimeSeriesKMeans(n_clusters=i, random_state=1234, metric=metric,max_iter=1000)
     ts_km.fit_predict(nm_data)
-    distortions.append(ts_km.inertia_) 
+    sse_list.append(ts_km.inertia_) 
 
-plt.plot(range(1,subjects),distortions,marker="o") 
+plt.plot(range(1,subjects),sse_list,marker="o") 
 plt.xticks(range(1,subjects)) 
 plt.xlabel("Number of clusters") 
-plt.ylabel("Distortion") 
+plt.ylabel("SSE") 
 plt.show()
 
 km = TimeSeriesKMeans(n_clusters=n, random_state=1234, metric=metric,max_iter=1000)
