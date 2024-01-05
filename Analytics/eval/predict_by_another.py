@@ -4,6 +4,7 @@ from sklearn.preprocessing import StandardScaler
 from scipy.signal import butter, filtfilt
 from train_code.generator.raw_generator import transpose_raw2d
 import keras
+from joblib import load
 #TODO: この二つの関数は冗長
 def preprocess(data,fs):
     #print(f"{scaler.mean_} / {scaler.scale_}")
@@ -24,11 +25,19 @@ def preprocess(data,fs):
     return np.array(data)
 def specificity(y_true, y_pred): pass
 
-def eval_sequence(data:np.ndarray,fs:int,block_size:int,step:int,transpose_func,model):
+def eval_sequence(data:np.ndarray,
+                  fs:int,
+                  block_size:int,
+                  step:int,
+                  transpose_func,
+                  model,
+                  model_mode = "dl"):
     dataset = np.array([preprocess(data[:,ei-block_size:ei],fs) for ei in range(block_size,data.shape[1],step)])
     dataset = transpose_func(0,dataset)
-    return [2 if p > 0.5 else 1 for p in model.predict(dataset,verbose = 0)]
-
+    if model_mode == "dl":
+        return [2 if p > 0.5 else 1 for p in model.predict(dataset,verbose = 0)]
+    elif model_mode == "lda":
+        return [p+1 for p in model.predict(dataset)]
     
 def predict(model_path:str,loaded_data:np.ndarray,fs:int,ch_size:int,block_size:int,step:int):
     stim_data = loaded_data
@@ -37,6 +46,15 @@ def predict(model_path:str,loaded_data:np.ndarray,fs:int,ch_size:int,block_size:
     predictclass_list = []
     for i in range(all_data.shape[0]):
         predictclass_list.append(eval_sequence(all_data[i,:,:],fs,block_size,step,transpose_raw2d,d1_model))
+    return predictclass_list
+
+def predict_csp(model_path:str,loaded_data:np.ndarray,fs:int,ch_size:int,block_size:int,step:int):
+    stim_data = loaded_data
+    model = load(model_path)
+    all_data = stim_data[:,:ch_size,:]
+    predictclass_list = []
+    for i in range(all_data.shape[0]):
+        predictclass_list.append(eval_sequence(all_data[i,:,:],fs,block_size,step,lambda _,x: x,model,model_mode="lda"))
     return predictclass_list
 
 # %% #任意のモデルで結果を出力
@@ -55,13 +73,13 @@ if __name__ == "__main__":
     """
     オプション
     """
-    model_path = ""
+    mode = "csplda" # dl or csplda
     fs = 500
     ch_size = 13
     block_size = 750
     step = 250
 
-
+    print(f"モード{mode}です")
     with open('settings.json') as f:
         settings = json.load(f)
         dataset_dir = settings['dataset_dir']
@@ -80,7 +98,8 @@ if __name__ == "__main__":
             x = np.load(data_path)
             stim_data,predictclass_list,trueclasses = load_data(x,fs)
             if model_path != "":
-                predictclass_list = predict(model_path,stim_data,fs,ch_size,block_size,step)
+                predictclass_list = predict(model_path,stim_data,fs,ch_size,block_size,step) if mode == "dl" else \
+                predict_csp(model_path,stim_data,fs,ch_size,block_size,step)
             else:
                 print("モデルパスが未指定のためデータに保存されている予測値を使用。")
             data_metrics,data_detailed_metrics,_ = analyse1(trueclasses,predictclass_list)
