@@ -278,3 +278,39 @@ plt.title("Diff Changes")
 #plt.minorticks_on()
 plt.show()
 # %%
+# %% C3-C4 DIFF 時系列
+group = [2,9]
+plt.figure()
+_,_,_,subject_merged_diffdiffs = calc_diffs(subject_laps_erders[0])
+lap1_diffdiffs = subject_merged_diffdiffs[[subject2index(1,s) for s in group],:]
+_,_,_,subject_merged_diffdiffs = calc_diffs(subject_laps_erders[1])
+lap2_diffdiffs = subject_merged_diffdiffs[[subject2index(2,s) for s in group],:]
+diffdiffs = np.concatenate([lap1_diffdiffs,lap2_diffdiffs],axis=-1)
+
+for i,subject in enumerate(group):
+    plt.plot(range(8),diffdiffs[i,:],
+             "8-",
+                        color=colors[subject - 1],
+                        label= f"{subject}")
+
+xticks = []
+xtick_labels = []
+for x in range(0,8):
+    xticks.append(x)
+    xtick_labels.append(f"Day{(x) % 4 + 1}")
+xticks.append(1.5)
+xtick_labels.append("\n1st")
+xticks.append(5.5)
+xtick_labels.append("\n2st")
+plt.xticks(xticks,xtick_labels)
+xticks = plt.gca().xaxis.get_major_ticks()
+for i,label in enumerate(xtick_labels):
+    if label in ["\n1st","\n2st"]:
+        xticks[i].tick1line.set_visible(False)
+plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+plt.ylabel("Diff")
+plt.title("Diff Changes")
+plt.ylim([-0.2,1.3])#plt.ylim([-0.2,0.5])
+#plt.minorticks_on()
+plt.show()
+# %%
