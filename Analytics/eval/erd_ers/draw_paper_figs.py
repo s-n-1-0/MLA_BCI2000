@@ -274,7 +274,7 @@ for i,label in enumerate(xtick_labels):
         xticks[i].tick1line.set_visible(False)
 plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
 plt.ylabel("Diff")
-plt.title("Diff Transition")
+plt.title("Diff Changes")
 #plt.minorticks_on()
 plt.show()
 # %%
