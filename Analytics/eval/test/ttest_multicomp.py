@@ -6,7 +6,6 @@ sys.path.append('../')
 from load_excel import get_data_from_excel
 # %%
 excel_path = "C:/Users/2221012/Downloads/1+2日目.xlsx"
-subjects = 15
 a_group = [3,5,8,10,11,12,16,17]
 b_group = [1,2,4,7,9,13,15]
 subjects = 15
@@ -31,3 +30,6 @@ fdr
 # %%
 results["p-val(FDR/bh)"] = fdr[1]
 results
+
+# %%
+results.to_csv("./results/ttest_multicomp.csv")

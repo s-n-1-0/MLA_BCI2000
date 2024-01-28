@@ -31,22 +31,5 @@ df
 aov = pg.mixed_anova(data=df, dv='Scores', between='Group', within='Time',
                      subject='Subject', correction=False, effsize="n2")
 aov
-
 # %%
-
-grouped = read_data()
-grouped.insert(0,"クラスタ",None)
-for a in a_groups: grouped.loc[a,'クラスタ'] = "A"
-for b in b_groups: grouped.loc[b,'クラスタ'] = "B"
-
-# %%
-from rpy2.robjects.conversion import localconverter
-from rpy2.robjects.conversion import py2rpy
-import rpy2.robjects as robjects
-from rpy2.robjects import pandas2ri
-with localconverter(robjects.default_converter + pandas2ri.converter):
-    r_df = py2rpy(grouped)
-    robjects.r.assign("df", r_df)
-robjects.r("df")
-robjects.r('source(file="C:/test/anovakun_489.txt")')
-robjects.r('anovakun(df, "AsB", 2, 16)')
+aov.to_csv("./results/2way_mixed_anova.csv")

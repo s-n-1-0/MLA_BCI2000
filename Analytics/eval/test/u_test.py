@@ -26,5 +26,6 @@ for m in groups:
     else:
         results = pd.concat([results,_results])
 results = results.drop(["RBC","CLES"],axis=1)
-results.rename("参加者番号")
 results
+# %%
+results.to_csv("./results/u_test.csv")
