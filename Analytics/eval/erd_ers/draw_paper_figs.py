@@ -3,6 +3,8 @@
 #
 # %%
 import numpy as np
+import pandas as pd
+import pingouin as pg
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import math
@@ -200,9 +202,18 @@ for lap,subject_erders,subject_acc_df in zip([1,2],subject_laps_erders,subject_l
         sx = diffdiffs[subject_indexes,day].reshape(-1,1)
         sy = (subject_acc_df.values[subject_indexes,day*2] + subject_acc_df.values[subject_indexes,day*2+1])/2
         rlist.append(spearmanr(sx,sy))
+# 多重比較
+rdf = pd.DataFrame(np.array(rlist),columns=["Rs","p-val"])
+rdf.insert(len(rlist[0]),"p-val(FDR/bh)",None)
+fdr = pg.multicomp(rdf["p-val"].values, method='fdr_bh')
+rdf["p-val(FDR/bh)"] = fdr[1]
+rdf.to_csv("../test/results/rs_times")
+
+plt.figure()
 plt.plot(range(1,9),[r for r,_ in rlist],marker="8")
-for i,_p in enumerate(rlist):
-    r,p = _p
+for i in range(rdf.values.shape[0]):
+    r = rdf["Rs"][i]
+    p = rdf["p-val(FDR/bh)"][i]
     if p < 0.05:
         plt.text(i+1,r+0.05,"*",ha='center')
 plt.ylabel("$R_s$")
