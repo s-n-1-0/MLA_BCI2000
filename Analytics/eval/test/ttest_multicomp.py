@@ -1,8 +1,6 @@
 # %%
 import pingouin as pg
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import sys
 sys.path.append('../')
 from load_excel import get_data_from_excel
@@ -25,26 +23,13 @@ def ttest(i:int):
     return pg.ttest(a, b)
 results = pd.concat([ttest(i) for i in range(16)])
 results.insert(3,"p-val(FDR/bh)",None)
-fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
-results["p-val(FDR/bh)"] = fdr[1]
-results.to_csv("./results/ttest_multicomp.csv")
-results
-
-# %% diffの差検定
-a_diffdiffs = np.load("./diffdiffs_a.npy")
-b_diffdiffs = np.load("./diffdiffs_b.npy")
-plt.plot(range(8),np.mean(a_diffdiffs,axis=0),color="r")
-plt.plot(range(8),np.mean(b_diffdiffs,axis=0))
-def ttest(i:int):
-    a = a_diffdiffs[:,i]
-    b = b_diffdiffs[:,i]
-    df = pg.ttest(a, b)
-    df.index = [f"Day {i+1}"]
-    return df
-results = pd.concat([ttest(i) for i in range(8)])
-results.insert(3,"p-val(FDR/bh)",None)
-fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
-results["p-val(FDR/bh)"] = fdr[1]
-results.to_csv("./results/diffdiff_ttest_multicomp.csv")
 results
 # %%
+fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
+fdr
+# %%
+results["p-val(FDR/bh)"] = fdr[1]
+results
+
+# %%
+results.to_csv("./results/ttest_multicomp.csv")
