@@ -2,6 +2,7 @@
 import pingouin as pg
 import pandas as pd
 import sys
+import numpy as np
 sys.path.append('../')
 from load_excel import get_data_from_excel
 # %%
@@ -26,6 +27,83 @@ for m in groups:
     else:
         results = pd.concat([results,_results])
 results = results.drop(["RBC","CLES"],axis=1)
+results.to_csv("./results/u_test.csv")
+results
+
+# %% DiffDiffのu検定
+results = None
+a_diffdiffs = np.load("./diffdiffs_a.npy")
+b_diffdiffs = np.load("./diffdiffs_b.npy")
+for i in range(8):
+    _results = pg.mwu(a_diffdiffs[:,i],b_diffdiffs[:,i])
+    _results.index = [" ".join([
+        "1周目" if i < 4 else "2周目",
+        f"{(i+1)%4 if (i+1) %4 != 0 else 4}日目"
+    ])]
+    if results is None:
+        results = _results
+    else:
+        results = pd.concat([results,_results])
+results = results.drop(["RBC","CLES"],axis=1)
+fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
+results["p-val(FDR/bh)"] = fdr[1]
+results.to_csv("./results/u_test.csv")
 results
 # %%
-results.to_csv("./results/u_test.csv")
+results = None
+a_diffdiffs = np.load("./diffdiffs_a.npy")
+b_diffdiffs = np.load("./diffdiffs_b.npy")
+data = np.concatenate([a_diffdiffs,b_diffdiffs],axis=0)
+def wilcoxon(diffdiffs:np.ndarray,i:int):
+    day1 = diffdiffs[:,0]
+    result = pg.wilcoxon(day1,diffdiffs[:,i] ,alternative="less")
+    result.index = [" ".join(["1周目1日目 vs.",
+        "1周目" if i < 4 else "2周目",
+        f"{(i+1)%4 if (i+1) %4 != 0 else 4}日目"
+    ])]
+    return result
+results = pd.concat([wilcoxon(data,i) for i in range(1,8)])
+results = results.drop(["RBC","CLES"],axis=1)
+fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
+results["p-val(FDR/bh)"] = fdr[1]
+results.to_csv("./results/u_test_all.csv", encoding="shift-jis")
+
+results = pd.concat([wilcoxon(a_diffdiffs,i) for i in range(1,8)])
+results = results.drop(["RBC","CLES"],axis=1)
+fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
+results["p-val(FDR/bh)"] = fdr[1]
+results.to_csv("./results/u_test_cl1.csv",encoding="shift-jis")
+
+results = pd.concat([wilcoxon(b_diffdiffs,i) for i in range(1,8)])
+results = results.drop(["RBC","CLES"],axis=1)
+fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
+results["p-val(FDR/bh)"] = fdr[1]
+results.to_csv("./results/u_test_cl2.csv", encoding="shift-jis")
+print(results)
+# %%
+def wilcoxon(diffdiffs:np.ndarray,i:int):
+    z_statistic = (np.mean(diffdiffs[:,i]) - 0) / (np.std(diffdiffs[:,i]) / np.sqrt(len(diffdiffs[:,i])))
+    result = pg.wilcoxon(diffdiffs[:,i])
+    result.insert(0,"Z-val",z_statistic)
+    result.index = [" ".join([
+        "1周目" if i < 4 else "2周目",
+        f"{(i+1)%4 if (i+1) %4 != 0 else 4}日目"
+    ])]
+    return result
+results = pd.concat([wilcoxon(data,i) for i in range(8)])
+results = results.drop(["RBC","CLES"],axis=1)
+fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
+results["p-val(FDR/bh)"] = fdr[1]
+results.to_csv("./results/u_test_all.csv", encoding="shift-jis")
+
+results = pd.concat([wilcoxon(a_diffdiffs,i) for i in range(8)])
+results = results.drop(["RBC","CLES"],axis=1)
+fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
+results["p-val(FDR/bh)"] = fdr[1]
+results.to_csv("./results/u_test_cl1.csv",encoding="shift-jis")
+
+results = pd.concat([wilcoxon(b_diffdiffs,i) for i in range(8)])
+results = results.drop(["RBC","CLES"],axis=1)
+fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
+results["p-val(FDR/bh)"] = fdr[1]
+results.to_csv("./results/u_test_cl2.csv", encoding="shift-jis")

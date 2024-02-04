@@ -2,6 +2,7 @@
 # 正規性の検定
 # Shapiro-Wilk
 #
+import numpy as np
 import pingouin as pg
 import pandas as pd
 import sys
@@ -28,13 +29,29 @@ results = pd.concat([normality(i) for i in range(16)])
 results["p-val(FDR/bh)"] = None
 results = results.drop("normal",axis=1)
 results = results.rename(columns={"pval":"p-val"})
-results
-# %%
 fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
-fdr
-# %%
 results["p-val(FDR/bh)"] = fdr[1]
 results.to_csv("./results/normality.csv")
 results
 
+# %%
+a_diffdiffs = np.load("./diffdiffs_a.npy")
+b_diffdiffs = np.load("./diffdiffs_b.npy")
+data = np.concatenate([a_diffdiffs,b_diffdiffs],axis=0)
+print(data.shape)
+def normality(i:int):
+    result = pg.normality(data[:,i])
+    result.index = [" ".join([
+        "1周目" if i < 4 else "2周目",
+        f"{(i+1)%4 if (i+1) %4 != 0 else 4}日目"
+    ])]
+    return result
+results = pd.concat([normality(i) for i in range(8)])
+results["p-val(FDR/bh)"] = None
+results = results.drop("normal",axis=1)
+results = results.rename(columns={"pval":"p-val"})
+fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
+results["p-val(FDR/bh)"] = fdr[1]
+results.to_csv("./results/diffdiffs_normality.csv")
+results
 # %%
