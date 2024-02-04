@@ -22,7 +22,7 @@ b_data = data.loc[b_group]
 def ttest(i:int):
     a = a_data.values[:,i]
     b = b_data.values[:,i]
-    return pg.ttest(a, b, correction=False)
+    return pg.ttest(a, b)
 results = pd.concat([ttest(i) for i in range(16)])
 results.insert(3,"p-val(FDR/bh)",None)
 fdr = pg.multicomp(results["p-val"].values, method='fdr_bh') 
