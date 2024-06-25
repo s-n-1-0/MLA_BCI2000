@@ -238,6 +238,8 @@ plt.show()
 a_groups = [3,5,8,10,11,12,16,17]
 b_groups = [1,2,4,7,9,13,15]
 a_means = []
+a_data = []
+b_data = []
 b_means = []
 plt.figure()
 for lap,subject_erders in zip([1,2],subject_laps_erders):
@@ -246,8 +248,8 @@ for lap,subject_erders in zip([1,2],subject_laps_erders):
     diffdiffs = subject_merged_diffdiffs
     
     for day in range(diffdiffs.shape[1]):
-        _a_means = []
-        _b_means = []
+        _a_data = []
+        _b_data = []
         for gi,group in enumerate([a_groups,b_groups]):
             for i,subject in zip([subject2index(lap,s) for s in group],group):
                 offset = (-1 if gi == 0 else 1) * 0.1
@@ -255,11 +257,13 @@ for lap,subject_erders in zip([1,2],subject_laps_erders):
                             color=colors[subject - 1],
                             label= f"{subject}" if lap == 1 and day == 0 else "")
                 if gi == 0:
-                    _a_means.append(diffdiffs[i,day])
+                    _a_data.append(diffdiffs[i,day])
                 else:
-                    _b_means.append(diffdiffs[i,day])
-        a_means.append(np.mean(_a_means))
-        b_means.append(np.mean(_b_means))
+                    _b_data.append(diffdiffs[i,day])
+        a_data.append(_a_data)
+        b_data.append(_b_data)
+        a_means.append(np.mean(_a_data))
+        b_means.append(np.mean(_b_data))
 
 plt.title(f"")
 plt.plot(range(8),a_means,"8-",label="Cl1")
@@ -289,6 +293,10 @@ plt.title("Diff Changes")
 #plt.minorticks_on()
 plt.show()
 # %%
+a_data = np.array(a_data)
+b_data = np.array(b_data)
+np.savetxt('C:/test/a_data.csv', a_data, delimiter=',')
+np.savetxt('C:/test/b_data.csv', a_data, delimiter=',')
 # %% C3-C4 DIFF 時系列
 group = [2,9]
 plt.figure()
